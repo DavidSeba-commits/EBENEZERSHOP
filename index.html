@@ -240,6 +240,52 @@
             .role-card .rc-icon { font-size:1.2rem; }
             .role-card { font-size:.68rem; padding:8px 4px; }
         }
+        /* ════════════ PDF REPORT BUTTON ════════════ */
+        .pdf-report-bar {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .pdf-report-bar span {
+            color: rgba(255,255,255,0.85);
+            font-size: .82rem;
+            font-weight: 600;
+        }
+        .btn-pdf {
+            background: linear-gradient(135deg, #c0392b, #810f0f);
+            color: white;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: .88rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: all .22s;
+            box-shadow: 0 3px 10px rgba(0,0,0,.3);
+            letter-spacing: .4px;
+        }
+        .btn-pdf:hover { background: linear-gradient(135deg, #a93226, #6a0d0d); transform: translateY(-1px); box-shadow: 0 5px 16px rgba(0,0,0,.35); }
+        .btn-pdf:active { transform: translateY(0); }
+        .pdf-date-picker {
+            padding: 7px 12px;
+            border: 2px solid rgba(255,255,255,.25);
+            border-radius: 8px;
+            background: rgba(255,255,255,.1);
+            color: white;
+            font-size: .82rem;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+        .pdf-date-picker:focus { border-color: rgba(255,255,255,.5); }
+        .pdf-date-picker::-webkit-calendar-picker-indicator { filter: invert(1); }
     </style>
 </head>
 <body>
@@ -313,6 +359,18 @@
                 <span class="tab-icon">🏦</span>Bank Stock
             </button>
         </nav>
+
+        <!-- PDF REPORT BAR -->
+        <div class="pdf-report-bar">
+            <span>📋 Daily Operations Summary</span>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <label style="color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;">Date:</label>
+                <input type="date" class="pdf-date-picker" id="pdfReportDate" title="Select date for report">
+                <button class="btn-pdf" onclick="generateDailyPDF()">
+                    📄 Download PDF Report
+                </button>
+            </div>
+        </div>
 
         <!-- ══ PAGE: MAIN LEDGER ══ -->
         <div id="tabMain" class="page-panel active">
@@ -1229,30 +1287,276 @@ function deleteTransaction(id) {
 }
 
 // ════════════════════════════
-//  DELETE SINGLE BANK STOCK
+//  DAILY PDF REPORT
 // ════════════════════════════
-function deleteBankStock(id) {
-    if (!loggedInRole || !ROLES[loggedInRole].canBank) {
-        alert('Only Admin can delete bank stock entries.'); return;
-    }
-    const entry = ledger.bankStock.find(e=>e.id===id);
-    if (!entry) return;
-    if (!confirm(`Delete bank stock entry:\n"${entry.item}" — ${fmt(entry.amount)}\nSource: ${entry.source}?`)) return;
 
-    ledger.bankStock = ledger.bankStock.filter(e=>e.id!==id);
+// Set today's date as default when app loads
+document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('pdfReportDate');
+    if (dateInput) dateInput.value = new Date().toISOString().slice(0,10);
+});
 
-    // Animate sidebar item if visible
-    const sideEl = document.getElementById('bk-'+id);
-    const rowEl  = document.getElementById('bkr-'+id);
-    const target = sideEl || rowEl;
-    if (target) {
-        target.classList.add('deleting');
-        setTimeout(()=>{ ledger.save(); renderBankStock(); }, 320);
+function generateDailyPDF() {
+    const dateInput = document.getElementById('pdfReportDate');
+    const reportDate = dateInput.value || new Date().toISOString().slice(0,10);
+
+    // Filter transactions for the selected date
+    // Transactions store a 'timestamp' (ISO string), not a 'date' field — extract date portion for comparison
+    const txDate = t => t.date || (t.timestamp ? t.timestamp.slice(0, 10) : '');
+    const dayTx = ledger.transactions.filter(t => txDate(t) === reportDate);
+    const dayDeposits    = dayTx.filter(t => t.type === 'deposit');
+    const dayWithdrawals = dayTx.filter(t => t.type === 'withdrawal');
+    const dayBank        = (ledger.bankStock || []).filter(b => (b.date || (b.timestamp ? b.timestamp.slice(0, 10) : '')) === reportDate);
+
+    const totalDep = dayDeposits.reduce((s, t) => s + t.amount, 0);
+    const totalWdr = dayWithdrawals.reduce((s, t) => s + t.amount, 0);
+    const netFlow  = totalDep - totalWdr;
+    const totalBank= dayBank.reduce((s, b) => s + b.amount, 0);
+
+    // Format helpers
+    const fmtAmt = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    const fmtDate = d => {
+        if (!d) return '';
+        const [y,m,dy] = d.split('-');
+        return `${dy}/${m}/${y}`;
+    };
+    const displayDate = fmtDate(reportDate);
+
+    // ── Build PDF using jsPDF ──
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+
+    const pageW = 210;
+    const pageH = 297;
+    const margin = 14;
+    const col = pageW - margin*2;
+    let y = 0;
+
+    // Helper: add page if needed
+    const checkPage = (need=10) => {
+        if (y + need > pageH - 14) { doc.addPage(); y = 20; }
+    };
+
+    // ── HEADER BANNER ──
+    doc.setFillColor(44, 62, 80);
+    doc.rect(0, 0, pageW, 36, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(20); doc.setFont('helvetica','bold');
+    doc.text('SHOP EBENEZER', pageW/2, 13, {align:'center'});
+    doc.setFontSize(9); doc.setFont('helvetica','normal');
+    doc.text('Professional Transaction Management System', pageW/2, 19, {align:'center'});
+    doc.setFillColor(129, 15, 15);
+    doc.rect(0, 22, pageW, 14, 'F');
+    doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text(`DAILY OPERATIONS SUMMARY — ${displayDate}`, pageW/2, 31, {align:'center'});
+
+    y = 44;
+
+    // ── GENERATED INFO ──
+    doc.setTextColor(100,100,100);
+    doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+    doc.text(`Generated by: ${loggedInRole ? ROLES[loggedInRole].label.replace(/[^\w\s]/gi,'').trim() : 'System'}`, margin, y);
+    doc.text(`Printed: ${new Date().toLocaleString()}`, pageW - margin, y, {align:'right'});
+    y += 8;
+
+    // ── DIVIDER ──
+    const drawDivider = (color=[200,200,200]) => {
+        doc.setDrawColor(...color); doc.setLineWidth(0.4);
+        doc.line(margin, y, pageW-margin, y);
+        y += 4;
+    };
+    drawDivider();
+
+    // ── SUMMARY CARDS ROW ──
+    const cards = [
+        { label:'Total Deposits', value: fmtAmt(totalDep), color:[39,174,96] },
+        { label:'Total Withdrawals', value: fmtAmt(totalWdr), color:[192,57,43] },
+        { label:'Net Cash Flow', value: fmtAmt(Math.abs(netFlow)) + (netFlow < 0 ? ' (-)' : ' (+)'), color: netFlow>=0 ? [41,128,185] : [155,89,182] },
+        { label:'Bank Stock In', value: fmtAmt(totalBank), color:[23,162,184] },
+    ];
+    const cw = (col - 6) / 4;
+    cards.forEach((c, i) => {
+        const cx = margin + i*(cw+2);
+        doc.setFillColor(...c.color);
+        doc.roundedRect(cx, y, cw, 22, 2, 2, 'F');
+        doc.setTextColor(255,255,255);
+        doc.setFontSize(7); doc.setFont('helvetica','bold');
+        doc.text(c.label.toUpperCase(), cx + cw/2, y+7, {align:'center'});
+        doc.setFontSize(9); doc.setFont('helvetica','bold');
+        const lines = doc.splitTextToSize(c.value, cw-4);
+        doc.text(lines[0], cx + cw/2, y+15, {align:'center'});
+    });
+    y += 28;
+
+    // ── SECTION: DEPOSITS ──
+    const drawSectionHeader = (title, color=[129,15,15]) => {
+        checkPage(14);
+        doc.setFillColor(...color);
+        doc.roundedRect(margin, y, col, 9, 1.5, 1.5, 'F');
+        doc.setTextColor(255,255,255);
+        doc.setFontSize(9.5); doc.setFont('helvetica','bold');
+        doc.text(title, margin+4, y+6.3);
+        y += 13;
+        doc.setTextColor(50,50,50);
+    };
+
+    const drawTableHeader = (cols) => {
+        doc.setFillColor(240,240,240);
+        doc.rect(margin, y, col, 7, 'F');
+        doc.setTextColor(80,80,80); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+        let cx = margin + 2;
+        cols.forEach(c => {
+            doc.text(c.label, cx + (c.w/2), y + 5, {align: c.align||'center', maxWidth: c.w});
+            cx += c.w;
+        });
+        y += 7;
+        doc.setDrawColor(200,200,200); doc.setLineWidth(0.2);
+        doc.line(margin, y, pageW-margin, y);
+        y += 2;
+    };
+
+    const drawRow = (cols, values, rowIndex) => {
+        checkPage(9);
+        if (rowIndex % 2 === 0) { doc.setFillColor(252,252,252); doc.rect(margin, y, col, 8, 'F'); }
+        doc.setTextColor(40,40,40); doc.setFontSize(7.8); doc.setFont('helvetica','normal');
+        let cx = margin + 2;
+        cols.forEach((c, i) => {
+            const txt = String(values[i] ?? '');
+            doc.text(txt, cx + (c.align==='right' ? c.w-4 : c.w/2), y+5.5, {align: c.align||'center', maxWidth: c.w-2});
+            cx += c.w;
+        });
+        doc.setDrawColor(230,230,230); doc.setLineWidth(0.15);
+        doc.line(margin, y+8, pageW-margin, y+8);
+        y += 8;
+    };
+
+    // Deposits section
+    drawSectionHeader(`💰 DEPOSITS  (${dayDeposits.length} transaction${dayDeposits.length!==1?'s':''})`, [39,174,96]);
+    if (dayDeposits.length === 0) {
+        doc.setTextColor(160,160,160); doc.setFontSize(8); doc.setFont('helvetica','italic');
+        doc.text('No deposits recorded for this date.', margin+4, y+4);
+        y += 10;
     } else {
-        ledger.save(); renderBankStock();
+        const depCols = [
+            {label:'#',       w:8,   align:'center'},
+            {label:'Customer',w:52,  align:'left'},
+            {label:'Amount',  w:38,  align:'right'},
+            {label:'Recorded By', w:38, align:'center'},
+            {label:'Time / ID',   w:46, align:'center'},
+        ];
+        drawTableHeader(depCols);
+        dayDeposits.forEach((t, i) => {
+            drawRow(depCols, [
+                i+1,
+                t.customer,
+                fmtAmt(t.amount),
+                (t.by ? (ROLES[t.by] ? ROLES[t.by].label.replace(/[^\w\s]/gi,'').trim() : t.by) : 'N/A'),
+                t.id ? String(t.id).slice(-8) : '—'
+            ], i);
+        });
+        // Subtotal
+        y += 2;
+        doc.setFillColor(39,174,96); doc.setTextColor(255,255,255);
+        doc.roundedRect(margin, y, col, 8, 1, 1, 'F');
+        doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+        doc.text('TOTAL DEPOSITS:', margin+4, y+5.5);
+        doc.text(fmtAmt(totalDep), pageW-margin-4, y+5.5, {align:'right'});
+        y += 13;
     }
-    ledger.toast(`🗑️ Bank stock entry deleted: ${entry.item}`);
+
+    // Withdrawals section
+    drawSectionHeader(`💸 WITHDRAWALS  (${dayWithdrawals.length} transaction${dayWithdrawals.length!==1?'s':''})`, [192,57,43]);
+    if (dayWithdrawals.length === 0) {
+        doc.setTextColor(160,160,160); doc.setFontSize(8); doc.setFont('helvetica','italic');
+        doc.text('No withdrawals recorded for this date.', margin+4, y+4);
+        y += 10;
+    } else {
+        const wdrCols = [
+            {label:'#',       w:8,   align:'center'},
+            {label:'Customer',w:52,  align:'left'},
+            {label:'Amount',  w:38,  align:'right'},
+            {label:'Recorded By', w:38, align:'center'},
+            {label:'Time / ID',   w:46, align:'center'},
+        ];
+        drawTableHeader(wdrCols);
+        dayWithdrawals.forEach((t, i) => {
+            drawRow(wdrCols, [
+                i+1,
+                t.customer,
+                fmtAmt(t.amount),
+                (t.by ? (ROLES[t.by] ? ROLES[t.by].label.replace(/[^\w\s]/gi,'').trim() : t.by) : 'N/A'),
+                t.id ? String(t.id).slice(-8) : '—'
+            ], i);
+        });
+        y += 2;
+        doc.setFillColor(192,57,43); doc.setTextColor(255,255,255);
+        doc.roundedRect(margin, y, col, 8, 1, 1, 'F');
+        doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+        doc.text('TOTAL WITHDRAWALS:', margin+4, y+5.5);
+        doc.text(fmtAmt(totalWdr), pageW-margin-4, y+5.5, {align:'right'});
+        y += 13;
+    }
+
+    // Bank Stock section
+    checkPage(20);
+    drawSectionHeader(`🏦 BANK STOCK RECEIVED  (${dayBank.length} entr${dayBank.length!==1?'ies':'y'})`, [23,100,170]);
+    if (dayBank.length === 0) {
+        doc.setTextColor(160,160,160); doc.setFontSize(8); doc.setFont('helvetica','italic');
+        doc.text('No bank stock entries for this date.', margin+4, y+4);
+        y += 10;
+    } else {
+        const bkCols = [
+            {label:'#',       w:8,   align:'center'},
+            {label:'Item / Description', w:54, align:'left'},
+            {label:'Source / Bank',w:42, align:'center'},
+            {label:'Amount',  w:38,  align:'right'},
+            {label:'Notes',   w:40,  align:'left'},
+        ];
+        drawTableHeader(bkCols);
+        dayBank.forEach((b, i) => {
+            drawRow(bkCols, [i+1, b.item||'', b.source||'', fmtAmt(b.amount), b.notes||''], i);
+        });
+        y += 2;
+        doc.setFillColor(23,100,170); doc.setTextColor(255,255,255);
+        doc.roundedRect(margin, y, col, 8, 1, 1, 'F');
+        doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+        doc.text('TOTAL BANK STOCK:', margin+4, y+5.5);
+        doc.text(fmtAmt(totalBank), pageW-margin-4, y+5.5, {align:'right'});
+        y += 13;
+    }
+
+    // ── NET FLOW BOX ──
+    checkPage(24);
+    drawDivider();
+    const netColor = netFlow >= 0 ? [39,174,96] : [192,57,43];
+    doc.setFillColor(...netColor);
+    doc.roundedRect(margin, y, col, 18, 2.5, 2.5, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.text('NET CASH FLOW FOR THE DAY', margin+6, y+7);
+    doc.setFontSize(13);
+    doc.text(fmtAmt(Math.abs(netFlow)) + (netFlow >= 0 ? '  SURPLUS' : '  DEFICIT'), pageW-margin-4, y+12, {align:'right'});
+    doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+    doc.text(`(Total Deposits ${fmtAmt(totalDep)}  −  Total Withdrawals ${fmtAmt(totalWdr)})`, pageW/2, y+16, {align:'center'});
+    y += 24;
+
+    // ── FOOTER on each page ──
+    const totalPages = doc.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+        doc.setPage(p);
+        doc.setFillColor(44,62,80);
+        doc.rect(0, pageH-7, pageW, 7, 'F');
+        doc.setTextColor(180,180,180); doc.setFontSize(5.5); doc.setFont('helvetica','normal');
+        doc.text('SHOP EBENEZER — Confidential Daily Report', margin, pageH-2.5);
+        doc.text(`Page ${p} of ${totalPages}`, pageW-margin, pageH-2.5, {align:'right'});
+        doc.text(displayDate, pageW/2, pageH-2.5, {align:'center'});
+    }
+
+    // ── SAVE ──
+    doc.save(`ShopEbenezer_DailySummary_${reportDate}.pdf`);
+    ledger.toast('📄 Daily PDF report downloaded successfully!');
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>
