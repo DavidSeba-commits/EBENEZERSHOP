@@ -518,10 +518,11 @@
                             <th>Outstanding Balance</th>
                             <th>Last Transaction</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="unpaidTableBody">
-                        <tr><td colspan="7" class="no-data">No data found.</td></tr>
+                        <tr><td colspan="8" class="no-data">No data found.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -936,10 +937,11 @@ function renderUnpaid() {
 
     const tbody = document.getElementById('unpaidTableBody');
     if (!customers.length) {
-        tbody.innerHTML='<tr><td colspan="7"><div class="no-data">No customers match your search.</div></td></tr>';
+        tbody.innerHTML='<tr><td colspan="8"><div class="no-data">No customers match your search.</div></td></tr>';
         return;
     }
 
+    const canDel = loggedInRole && ROLES[loggedInRole].canClear;
     customers.sort((a,b)=>b.balance-a.balance);
     tbody.innerHTML = customers.map((c,i)=>{
         const lastTx=c.transactions.slice(-1)[0];
@@ -947,6 +949,9 @@ function renderUnpaid() {
         const badge=c.balance>0
             ?`<span class="badge-unpaid">Unpaid</span>`
             :`<span class="badge-paid">Settled</span>`;
+        const delBtn = canDel
+            ? `<button class="btn-delete-row" onclick="deleteCustomer('${c.name.replace(/'/g,"\\'")}')">🗑️ Delete</button>`
+            : '';
         return `<tr>
             <td>${i+1}</td>
             <td class="td-name">${c.name}</td>
@@ -955,6 +960,7 @@ function renderUnpaid() {
             <td class="td-balance">${fmt(c.balance)}</td>
             <td>${lastDate}</td>
             <td>${badge}</td>
+            <td>${delBtn}</td>
         </tr>`;
     }).join('');
 }
@@ -1284,6 +1290,62 @@ function deleteTransaction(id) {
         ledger.save(); ledger.updateDisplay();
     }
     ledger.toast(`🗑️ Transaction deleted and balance reversed for ${tx.customer}`);
+}
+
+// ════════════════════════════
+//  DELETE CUSTOMER (all their transactions)
+// ════════════════════════════
+function deleteCustomer(name) {
+    if (!loggedInRole || !ROLES[loggedInRole].canClear) {
+        alert('Only Admin can delete customer records.'); return;
+    }
+    const c = ledger.customers[name];
+    if (!c) return;
+    const txCount = c.transactions.length;
+    if (!confirm(`Delete all data for "${name}"?\n\n• ${txCount} transaction(s) will be removed\n• Balance of ${fmt(c.balance)} will be erased\n\nThis cannot be undone.`)) return;
+
+    // Remove all their transactions from the global list
+    const ids = new Set(c.transactions.map(t=>t.id));
+    ledger.transactions = ledger.transactions.filter(t=>!ids.has(t.id));
+
+    // Remove customer
+    delete ledger.customers[name];
+
+    ledger.save();
+    ledger.updateDisplay();
+    renderUnpaid();
+    ledger.toast(`🗑️ All records for "${name}" deleted.`);
+}
+
+// ════════════════════════════
+//  DELETE SINGLE BANK STOCK
+// ════════════════════════════
+function deleteBankStock(id) {
+    if (!loggedInRole || !ROLES[loggedInRole].canBank) {
+        alert('Only Admin can delete bank stock entries.'); return;
+    }
+    const entry = ledger.bankStock.find(e=>e.id===id);
+    if (!entry) return;
+    if (!confirm(`Delete bank stock entry "${entry.item}" — ${fmt(entry.amount)}?\n\nThis cannot be undone.`)) return;
+
+    ledger.bankStock = ledger.bankStock.filter(e=>e.id!==id);
+
+    // Animate out the sidebar card if visible
+    const sideEl = document.getElementById('bk-'+id);
+    if (sideEl) {
+        sideEl.classList.add('deleting');
+        setTimeout(()=>{ ledger.save(); renderBankStock(); }, 320);
+    } else {
+        // Animate out the table row if visible
+        const rowEl = document.getElementById('bkr-'+id);
+        if (rowEl) {
+            rowEl.classList.add('deleting');
+            setTimeout(()=>{ ledger.save(); renderBankStock(); }, 320);
+        } else {
+            ledger.save(); renderBankStock();
+        }
+    }
+    ledger.toast(`🗑️ Bank stock entry "${entry.item}" deleted.`);
 }
 
 // ════════════════════════════
