@@ -240,6 +240,106 @@
             .role-card .rc-icon { font-size:1.2rem; }
             .role-card { font-size:.68rem; padding:8px 4px; }
         }
+        /* ════════════ DAY OPERATIONS ════════════ */
+        .day-status-bar {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 9px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 8px;
+        }
+        .day-status-info { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+        .day-badge {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:800;
+            letter-spacing:.5px; text-transform:uppercase;
+        }
+        .day-badge.open  { background:#1a7a35; color:#90ee90; border:1.5px solid #28a745; }
+        .day-badge.closed { background:#6a0d0d; color:#ffb3b3; border:1.5px solid #dc3545; }
+        .day-info-text { color:rgba(255,255,255,.7); font-size:.78rem; font-weight:600; }
+        .btn-close-day {
+            background:linear-gradient(135deg,#c0392b,#810f0f);
+            color:white; border:none; padding:7px 16px; border-radius:8px;
+            font-weight:800; font-size:.8rem; cursor:pointer; display:flex;
+            align-items:center; gap:6px; transition:all .22s;
+            box-shadow:0 3px 8px rgba(0,0,0,.3); letter-spacing:.3px;
+        }
+        .btn-close-day:hover { background:linear-gradient(135deg,#a93226,#6a0d0d); transform:translateY(-1px); }
+        .btn-close-day.day-closed { background:linear-gradient(135deg,#1a7a35,#0d5c28); }
+        .btn-close-day.day-closed:hover { background:linear-gradient(135deg,#155a2b,#0a4a20); }
+
+        /* Modal */
+        .modal-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:10000;
+            display:flex; align-items:center; justify-content:center; padding:16px;
+            animation: fadeInBg .2s ease;
+        }
+        @keyframes fadeInBg { from{opacity:0} to{opacity:1} }
+        .modal-box {
+            background:white; border-radius:18px; width:100%; max-width:560px;
+            max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,.45);
+            animation: popIn .22s ease;
+        }
+        @keyframes popIn { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
+        .modal-header {
+            background:linear-gradient(135deg,#2c3e50,#34495e);
+            color:white; padding:22px 24px; border-radius:18px 18px 0 0;
+            display:flex; align-items:center; justify-content:space-between;
+        }
+        .modal-header h2 { font-size:1.2rem; }
+        .modal-close-x { background:rgba(255,255,255,.18); border:none; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; transition:background .18s; }
+        .modal-close-x:hover { background:rgba(255,255,255,.32); }
+        .modal-body { padding:22px 24px; }
+        .day-summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px; }
+        .day-sum-card { padding:14px 16px; border-radius:10px; border:2px solid #e9ecef; }
+        .day-sum-card .dsc-label { font-size:.72rem; text-transform:uppercase; letter-spacing:1px; font-weight:700; color:#adb5bd; margin-bottom:5px; }
+        .day-sum-card .dsc-val { font-size:1.3em; font-weight:900; }
+        .day-sum-card.green { border-color:#c3e6cb; } .day-sum-card.green .dsc-val { color:#1a7a35; }
+        .day-sum-card.red   { border-color:#f5c6cb; } .day-sum-card.red   .dsc-val { color:#c0392b; }
+        .day-sum-card.blue  { border-color:#bee3f8; } .day-sum-card.blue  .dsc-val { color:#1456a3; }
+        .day-sum-card.orange{ border-color:#fde5cc; } .day-sum-card.orange .dsc-val { color:#c75221; }
+        .day-sum-card.dark  { border-color:#ccc; }    .day-sum-card.dark  .dsc-val { color:#2c3e50; }
+        .modal-warn { background:#fff8e1; border:2px solid #ffc107; border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:.84rem; color:#856404; font-weight:600; }
+        .modal-actions { display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+        .btn-modal-cancel { padding:10px 20px; border:2px solid #dee2e6; border-radius:8px; background:white; color:#6c757d; font-weight:700; font-size:.9rem; cursor:pointer; transition:all .2s; }
+        .btn-modal-cancel:hover { background:#f0f0f0; }
+        .btn-modal-confirm { padding:10px 24px; border:none; border-radius:8px; background:linear-gradient(135deg,#c0392b,#810f0f); color:white; font-weight:800; font-size:.9rem; cursor:pointer; transition:all .2s; }
+        .btn-modal-confirm:hover { background:linear-gradient(135deg,#a93226,#6a0d0d); }
+        .btn-modal-open  { padding:10px 24px; border:none; border-radius:8px; background:linear-gradient(135deg,#1a7a35,#0d5c28); color:white; font-weight:800; font-size:.9rem; cursor:pointer; transition:all .2s; }
+        .btn-modal-open:hover  { background:linear-gradient(135deg,#155a2b,#0a4a20); }
+        .carryover-section { background:#f0f7ff; border:2px solid #bee3f8; border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+        .carryover-section h4 { color:#1456a3; margin-bottom:10px; font-size:.9rem; }
+        .carryover-item { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #dee2e6; font-size:.84rem; }
+        .carryover-item:last-child { border-bottom:none; }
+        .carryover-item .ci-name { font-weight:700; color:#2c3e50; }
+        .carryover-item .ci-amt { color:#c0392b; font-weight:800; }
+
+        /* Day History Tab */
+        .day-hist-card { background:white; border-radius:10px; border:2px solid #e9ecef; margin-bottom:12px; overflow:hidden; transition:box-shadow .2s; }
+        .day-hist-card:hover { box-shadow:0 4px 14px rgba(0,0,0,.1); }
+        .day-hist-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; gap:10px; flex-wrap:wrap; }
+        .day-hist-date { font-weight:900; color:#2c3e50; font-size:1rem; }
+        .day-hist-meta { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+        .day-hist-chip { font-size:.75rem; font-weight:700; padding:3px 10px; border-radius:20px; }
+        .chip-closed { background:#fff0f0; color:#c0392b; border:1.5px solid #f5c6cb; }
+        .chip-open   { background:#f0fff4; color:#1a7a35; border:1.5px solid #c3e6cb; }
+        .day-hist-amounts { display:flex; gap:16px; }
+        .dha-dep { color:#1a7a35; font-weight:800; font-size:.88rem; }
+        .dha-wdr { color:#c0392b; font-weight:800; font-size:.88rem; }
+        .day-hist-body { display:none; padding:0 18px 16px; border-top:1px solid #e9ecef; }
+        .day-hist-body.open { display:block; }
+        .day-hist-txs { margin-top:12px; max-height:280px; overflow-y:auto; }
+        .dh-tx-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f0f0f0; font-size:.83rem; }
+        .dh-tx-row:last-child { border-bottom:none; }
+        .dh-no-tx { color:#adb5bd; font-style:italic; font-size:.85rem; text-align:center; padding:14px; }
+        .reopen-btn { background:none; border:1.5px solid #1456a3; color:#1456a3; border-radius:7px; padding:5px 12px; font-size:.78rem; font-weight:700; cursor:pointer; transition:all .18s; }
+        .reopen-btn:hover { background:#1456a3; color:white; }
+
+        /* Day closed overlay on forms */
+        .day-closed-overlay { position:absolute; inset:0; background:rgba(248,249,250,.96); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; z-index:6; }
+        .day-closed-overlay .dco-icon { font-size:2.5em; }
+        .day-closed-overlay .dco-text { font-weight:900; color:#343a40; font-size:1rem; }
+        .day-closed-overlay .dco-sub  { font-size:.78em; color:#adb5bd; text-align:center; padding:0 12px; }
+
         /* ════════════ PDF REPORT BUTTON ════════════ */
         .pdf-report-bar {
             background: linear-gradient(135deg, #2c3e50, #34495e);
@@ -358,6 +458,9 @@
             <button class="nav-tab" onclick="showTab('tabBank')">
                 <span class="tab-icon">🏦</span>Bank Stock
             </button>
+            <button class="nav-tab" onclick="showTab('tabDayHistory')">
+                <span class="tab-icon">📅</span>Day History
+            </button>
         </nav>
 
         <!-- PDF REPORT BAR -->
@@ -372,6 +475,18 @@
             </div>
         </div>
 
+        <!-- DAY STATUS BAR -->
+        <div class="day-status-bar" id="dayStatusBar">
+            <div class="day-status-info">
+                <span class="day-badge open" id="dayStatusBadge">🟢 Day Open</span>
+                <span class="day-info-text" id="dayStatusText">Today's operations are active</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span id="dayAutoCloseCountdown" style="color:rgba(255,255,255,.5);font-size:.72rem;font-weight:600;"></span>
+                <button class="btn-close-day" id="btnCloseDay" onclick="openDayCloseModal()">🔒 Close Day</button>
+            </div>
+        </div>
+
         <!-- ══ PAGE: MAIN LEDGER ══ -->
         <div id="tabMain" class="page-panel active">
           <main class="main-content">
@@ -383,6 +498,11 @@
                         <div class="lk-icon">🔒</div>
                         <div class="lk-text">Deposits Locked</div>
                         <div class="lk-sub">Requires Deposit or Admin PIN</div>
+                    </div>
+                    <div class="day-closed-overlay" id="depositDayLock" style="display:none;">
+                        <div class="dco-icon">🌙</div>
+                        <div class="dco-text">Day Closed</div>
+                        <div class="dco-sub">Open a new day to record deposits</div>
                     </div>
                     <h3 class="deposit-icon"> Record Deposit (Paid)</h3>
                     <form id="depositForm">
@@ -409,6 +529,11 @@
                         <div class="lk-text">Withdrawals Locked</div>
                         <div class="lk-sub">Requires Withdrawal or Admin PIN</div>
                     </div>
+                    <div class="day-closed-overlay" id="withdrawalDayLock" style="display:none;">
+                        <div class="dco-icon">🌙</div>
+                        <div class="dco-text">Day Closed</div>
+                        <div class="dco-sub">Open a new day to record withdrawals</div>
+                    </div>
                     <h3 class="withdrawal-icon"> Record Withdrawal</h3>
                     <form id="withdrawalForm">
                         <div class="form-group">
@@ -427,6 +552,14 @@
                     </form>
                 </div>
             </section>
+
+            <!-- DATE FILTER BAR -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f8f9fa;border:2px solid #e9ecef;border-radius:10px;padding:10px 16px;margin-bottom:14px;">
+                <span style="font-weight:700;color:#495057;font-size:.88rem;">📅 Filter by Date:</span>
+                <input type="date" id="statsDateFilter" style="padding:7px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:.88rem;outline:none;font-family:inherit;" oninput="ledger.updateDisplay()">
+                <button onclick="document.getElementById('statsDateFilter').value='';ledger.updateDisplay();" style="padding:7px 14px;border:2px solid #dee2e6;border-radius:8px;background:white;color:#6c757d;font-weight:700;font-size:.82rem;cursor:pointer;">✕ All Time</button>
+                <span id="statsDateLabel" style="color:#adb5bd;font-size:.78rem;font-weight:600;"></span>
+            </div>
 
             <section class="stats-section">
                 <div class="stat-card green"><h4>Total Paid In</h4><div class="amount" id="totalReceived">$0.00</div></div>
@@ -614,8 +747,52 @@
           </main>
         </div>
 
+        <!-- ══ PAGE: DAY HISTORY ══ -->
+        <div id="tabDayHistory" class="page-panel">
+          <main class="main-content">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+                <h2 style="color:#2c3e50;">📅 Day Operations History</h2>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <input type="month" id="dayHistoryMonth" style="padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:.88rem;outline:none;" oninput="renderDayHistory()">
+                    <button class="btn-reset" onclick="document.getElementById('dayHistoryMonth').value='';renderDayHistory();">✕ All</button>
+                    <button onclick="deleteAllDayHistory()" style="padding:8px 16px;border:none;border-radius:8px;background:linear-gradient(135deg,#c0392b,#810f0f);color:white;font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:5px;">🗑️ Delete All History</button>
+                </div>
+            </div>
+            <div id="dayHistorySummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px;"></div>
+            <div id="dayHistoryList"><div class="no-data">No closed days recorded yet.</div></div>
+          </main>
+        </div>
+
     </div><!-- /container -->
 </div><!-- /appScreen -->
+
+<!-- ══ DAY CLOSE MODAL ══ -->
+<div class="modal-overlay" id="dayCloseModal" style="display:none;" onclick="if(event.target===this)closeDayModal()">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2 id="dayModalTitle">🔒 Close Today's Operations</h2>
+            <button class="modal-close-x" onclick="closeDayModal()">✕</button>
+        </div>
+        <div class="modal-body" id="dayModalBody">
+            <!-- Filled by JS -->
+        </div>
+    </div>
+</div>
+
+<!-- ══ NEW DAY MODAL ══ -->
+<div class="modal-overlay" id="newDayModal" style="display:none;" onclick="if(event.target===this)closeNewDayModal()">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2>🌅 Start New Day</h2>
+            <button class="modal-close-x" onclick="closeNewDayModal()">✕</button>
+        </div>
+        <div class="modal-body" id="newDayModalBody">
+            <!-- Filled by JS -->
+        </div>
+    </div>
+</div>
+
+
 
 <!-- Back End-->>
 
@@ -673,6 +850,9 @@ function submitPin() {
         document.getElementById('appScreen').style.display='block';
         document.getElementById('userBadge').textContent=role.label;
         applyPermissions(role);
+        // Set date filter to today by default
+        const df = document.getElementById('statsDateFilter');
+        if (df && !df.value) df.value = new Date().toISOString().slice(0,10);
         ledger.updateDisplay();
         renderUnpaid();
         renderBankStock();
@@ -724,6 +904,7 @@ function showTab(id) {
     event.currentTarget.classList.add('active');
     if (id==='tabUnpaid') renderUnpaid();
     if (id==='tabBank')   renderBankStock();
+    if (id==='tabDayHistory') renderDayHistory();
 }
 
 // ════════════════════════════
@@ -755,6 +936,7 @@ class DigitalLedger {
     }
 
     recordDeposit() {
+        if (dayState && dayState.closed) { alert('⚠️ Day is closed. Please open a new day first.'); return; }
         const name   = document.getElementById('depositCustomer').value.trim();
         const amount = parseFloat(document.getElementById('depositAmount').value);
         const dateVal= document.getElementById('depositDate').value;
@@ -774,6 +956,7 @@ class DigitalLedger {
     }
 
     recordWithdrawal() {
+        if (dayState && dayState.closed) { alert('⚠️ Day is closed. Please open a new day first.'); return; }
         const name   = document.getElementById('withdrawalCustomer').value.trim();
         const amount = parseFloat(document.getElementById('withdrawalAmount').value);
         const dateVal= document.getElementById('withdrawalDate').value;
@@ -807,21 +990,54 @@ class DigitalLedger {
     }
 
     updateDisplay() {
-        let rec=0,wdr=0,active=0;
-        Object.values(this.customers).forEach(c=>{
-            rec+=c.totalReceived; wdr+=c.totalWithdrawn;
-            if(c.balance>0) active++;
+        const dateFilter = document.getElementById('statsDateFilter')?.value || '';
+        const label = document.getElementById('statsDateLabel');
+
+        // Filter transactions by date
+        const filteredTx = dateFilter
+            ? this.transactions.filter(t => t.timestamp.slice(0,10) === dateFilter)
+            : this.transactions;
+
+        // Compute totals from filtered transactions
+        let rec = 0, wdr = 0;
+        filteredTx.forEach(t => {
+            if (t.type === 'deposit')    rec += t.amount;
+            if (t.type === 'withdrawal') wdr += t.amount;
         });
+
+        // Active customers: those with balance > 0 on filtered date
+        // If no date filter, use all-time balances
+        let active = 0;
+        if (dateFilter) {
+            // Count customers who had at least one transaction on this date
+            const names = new Set(filteredTx.map(t => t.customer));
+            active = names.size;
+            if (label) label.textContent = `Showing: ${new Date(dateFilter+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}`;
+        } else {
+            Object.values(this.customers).forEach(c => { if (c.balance > 0) active++; });
+            if (label) label.textContent = 'Showing: All time';
+        }
+
         document.getElementById('totalReceived').textContent    = fmt(rec);
         document.getElementById('totalWithdrawn').textContent   = fmt(wdr);
-        document.getElementById('totalOutstanding').textContent = fmt(rec-wdr);
+        document.getElementById('totalOutstanding').textContent = fmt(rec - wdr);
         document.getElementById('activeCustomers').textContent  = active;
 
-        const customers=Object.values(this.customers);
-        const cl=document.getElementById('customerList');
+        // Customer list — filter by date if set
+        const customers = dateFilter
+            ? Object.values(this.customers).filter(c => c.transactions.some(t => t.timestamp.slice(0,10) === dateFilter))
+            : Object.values(this.customers);
+
+        const cl = document.getElementById('customerList');
         cl.innerHTML = !customers.length
-            ? '<div class="no-data">No customers yet. Add a deposit to get started.</div>'
-            : customers.sort((a,b)=>b.balance-a.balance).map(c=>`
+            ? `<div class="no-data">${dateFilter ? 'No customers with transactions on this date.' : 'No customers yet. Add a deposit to get started.'}</div>`
+            : customers.sort((a,b)=>b.balance-a.balance).map(c => {
+                // Per-date received/withdrawn for this customer
+                const cTx = dateFilter ? c.transactions.filter(t=>t.timestamp.slice(0,10)===dateFilter) : null;
+                const cRec = cTx ? cTx.filter(t=>t.type==='deposit').reduce((s,t)=>s+t.amount,0) : c.totalReceived;
+                const cWdr = cTx ? cTx.filter(t=>t.type==='withdrawal').reduce((s,t)=>s+t.amount,0) : c.totalWithdrawn;
+                const cBal = dateFilter ? (cRec - cWdr) : c.balance;
+                return `
                 <div class="customer-card ${c.balance>0?'pending':'completed'}">
                     <div class="customer-info">
                         <h4>${c.name}</h4>
@@ -829,26 +1045,27 @@ class DigitalLedger {
                     </div>
                     <div style="text-align:center;">
                         <div class="col-label">Paid</div>
-                        <div class="col-paid">${fmt(c.totalReceived)}</div>
+                        <div class="col-paid">${fmt(cRec)}</div>
                     </div>
                     <div style="text-align:center;">
                         <div class="col-label">Withdrawn</div>
-                        <div class="col-withdraw">${fmt(c.totalWithdrawn)}</div>
+                        <div class="col-withdraw">${fmt(cWdr)}</div>
                     </div>
                     <div style="text-align:center;">
                         <div class="col-label">Balance</div>
-                        <div class="col-balance">${fmt(c.balance)}</div>
+                        <div class="col-balance">${fmt(cBal)}</div>
                     </div>
                     <div class="status-indicator">${c.balance>0?'🔴':'🟢'}</div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
 
-        const txEl=document.getElementById('transactionHistory');
-        const icons={admin:'👑',deposit:'💰',withdraw:'💸'};
-        txEl.innerHTML = !this.transactions.length
-            ? '<div class="no-data">No transactions yet.</div>'
-            : this.transactions.slice(0,15).map(t=>{
-                const date=new Date(t.timestamp).toLocaleString();
-                const by=t.by?`<span style="font-size:.72em;color:#adb5bd;margin-left:4px;">${icons[t.by]||''}</span>`:'';
+        const txEl = document.getElementById('transactionHistory');
+        const icons = {admin:'👑',deposit:'💰',withdraw:'💸'};
+        txEl.innerHTML = !filteredTx.length
+            ? `<div class="no-data">${dateFilter ? 'No transactions on this date.' : 'No transactions yet.'}</div>`
+            : filteredTx.slice(0,15).map(t => {
+                const date = new Date(t.timestamp).toLocaleString();
+                const by = t.by ? `<span style="font-size:.72em;color:#adb5bd;margin-left:4px;">${icons[t.by]||''}</span>` : '';
                 const canDel = loggedInRole && ROLES[loggedInRole].canClear;
                 const delBtn = canDel ? `<button class="btn-delete-row" onclick="deleteTransaction(${t.id})" title="Delete this transaction">🗑️ Del</button>` : '';
                 return `<div class="transaction-item ${t.type}" id="tx-${t.id}">
@@ -1618,6 +1835,400 @@ function generateDailyPDF() {
     doc.save(`ShopEbenezer_DailySummary_${reportDate}.pdf`);
     ledger.toast('📄 Daily PDF report downloaded successfully!');
 }
+
+// ════════════════════════════════════════════════════
+//  DAY OPERATIONS  —  Close / Open / History / Carryover
+// ════════════════════════════════════════════════════
+
+const DAY_STORE_KEY = 'dayOperations';
+const DAY_STATE_KEY = 'currentDayState';
+
+/* ── helpers ── */
+function todayStr() {
+    return new Date().toISOString().slice(0,10); // "YYYY-MM-DD"
+}
+function fmtDayDate(str) {
+    if (!str) return '—';
+    const d = new Date(str+'T12:00:00');
+    return d.toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+}
+
+/* ── load/save closed days archive ── */
+function loadDayOps() {
+    try { return JSON.parse(localStorage.getItem(DAY_STORE_KEY)) || []; } catch(e) { return []; }
+}
+function saveDayOps(ops) {
+    localStorage.setItem(DAY_STORE_KEY, JSON.stringify(ops));
+}
+
+/* ── current day state ── */
+function loadDayState() {
+    try {
+        const s = JSON.parse(localStorage.getItem(DAY_STATE_KEY));
+        if (s) return s;
+    } catch(e) {}
+    // Default: today open
+    const state = { date: todayStr(), closed: false, closedAt: null };
+    saveDayState(state);
+    return state;
+}
+function saveDayState(state) {
+    localStorage.setItem(DAY_STATE_KEY, JSON.stringify(state));
+}
+
+let dayState = loadDayState();
+
+/* ── apply day open/closed UI ── */
+function applyDayUI() {
+    const isOpen = !dayState.closed;
+    const badge  = document.getElementById('dayStatusBadge');
+    const text   = document.getElementById('dayStatusText');
+    const btn    = document.getElementById('btnCloseDay');
+
+    // Day overlays on forms
+    ['depositDayLock','withdrawalDayLock'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = isOpen ? 'none' : 'flex';
+    });
+
+    if (isOpen) {
+        badge.className  = 'day-badge open';
+        badge.textContent = '🟢 Day Open';
+        text.textContent  = `${fmtDayDate(dayState.date)} — Operations active`;
+        btn.className    = 'btn-close-day';
+        btn.textContent  = '🔒 Close Day';
+        btn.onclick      = openDayCloseModal;
+    } else {
+        badge.className  = 'day-badge closed';
+        badge.textContent = '🔴 Day Closed';
+        text.textContent  = `${fmtDayDate(dayState.date)} closed at ${dayState.closedAt ? new Date(dayState.closedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—'}`;
+        btn.className    = 'btn-close-day day-closed';
+        btn.textContent  = '🌅 Open New Day';
+        btn.onclick      = openNewDayModal;
+    }
+}
+
+/* ── get today's transactions summary ── */
+function getTodaySummary(dateStr) {
+    const txs = ledger.transactions.filter(t => t.timestamp.slice(0,10) === dateStr);
+    const deps = txs.filter(t=>t.type==='deposit');
+    const wdrs = txs.filter(t=>t.type==='withdrawal');
+    const banks = ledger.bankStock.filter(b => (b.timestamp||'').slice(0,10) === dateStr);
+    const totalDep  = deps.reduce((s,t)=>s+t.amount, 0);
+    const totalWdr  = wdrs.reduce((s,t)=>s+t.amount, 0);
+    const totalBank = banks.reduce((s,b)=>s+b.amount, 0);
+    const netFlow   = totalDep - totalWdr;
+    const unpaidCustomers = Object.values(ledger.customers).filter(c=>c.balance>0);
+    const totalUnpaid = unpaidCustomers.reduce((s,c)=>s+c.balance,0);
+    return { txs, deps, wdrs, banks, totalDep, totalWdr, totalBank, netFlow, unpaidCustomers, totalUnpaid };
+}
+
+/* ── CLOSE DAY MODAL ── */
+function openDayCloseModal() {
+    if (!loggedInRole || !ROLES[loggedInRole].canClear) {
+        alert('⚠️ Only Admin can close/open the day.');
+        return;
+    }
+    const s = getTodaySummary(dayState.date);
+    document.getElementById('dayModalTitle').textContent = '🔒 Close Today\'s Operations';
+
+    let carryoverHtml = '';
+    if (s.unpaidCustomers.length > 0) {
+        const items = s.unpaidCustomers.slice(0,8).map(c=>`
+            <div class="carryover-item">
+                <span class="ci-name">${c.name}</span>
+                <span class="ci-amt">${fmt(c.balance)} unpaid</span>
+            </div>`).join('');
+        const more = s.unpaidCustomers.length > 8 ? `<div style="text-align:center;color:#adb5bd;font-size:.78rem;padding:6px;">…and ${s.unpaidCustomers.length - 8} more</div>` : '';
+        carryoverHtml = `
+        <div class="carryover-section">
+            <h4>🔄 Carried Over to Next Day (${s.unpaidCustomers.length} unpaid)</h4>
+            ${items}${more}
+        </div>`;
+    }
+
+    document.getElementById('dayModalBody').innerHTML = `
+        <div class="day-summary-grid">
+            <div class="day-sum-card green"><div class="dsc-label">💰 Total Deposits</div><div class="dsc-val">${fmt(s.totalDep)}</div><div style="font-size:.75rem;color:#adb5bd;">${s.deps.length} transactions</div></div>
+            <div class="day-sum-card red"><div class="dsc-label">💸 Total Withdrawals</div><div class="dsc-val">${fmt(s.totalWdr)}</div><div style="font-size:.75rem;color:#adb5bd;">${s.wdrs.length} transactions</div></div>
+            <div class="day-sum-card blue"><div class="dsc-label">🏦 Bank Stock In</div><div class="dsc-val">${fmt(s.totalBank)}</div><div style="font-size:.75rem;color:#adb5bd;">${s.banks.length} entries</div></div>
+            <div class="day-sum-card ${s.netFlow>=0?'green':'red'}"><div class="dsc-label">${s.netFlow>=0?'📈 Net Surplus':'📉 Net Deficit'}</div><div class="dsc-val">${fmt(Math.abs(s.netFlow))}</div></div>
+            <div class="day-sum-card orange"><div class="dsc-label">🔴 Unpaid Balances</div><div class="dsc-val">${fmt(s.totalUnpaid)}</div><div style="font-size:.75rem;color:#adb5bd;">${s.unpaidCustomers.length} customers</div></div>
+            <div class="day-sum-card dark"><div class="dsc-label">📋 Total Transactions</div><div class="dsc-val">${s.txs.length}</div></div>
+        </div>
+        ${carryoverHtml}
+        <div class="modal-warn">⚠️ Unpaid balances and pending sales will be carried over to the next day automatically. No data will be lost.</div>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeDayModal()">Cancel</button>
+            <button class="btn-modal-confirm" onclick="confirmCloseDay()">🔒 Confirm Close Day</button>
+        </div>`;
+    document.getElementById('dayCloseModal').style.display='flex';
+}
+
+function closeDayModal() {
+    document.getElementById('dayCloseModal').style.display='none';
+}
+
+function confirmCloseDay() {
+    const s = getTodaySummary(dayState.date);
+
+    // Archive this day
+    const ops = loadDayOps();
+    const existing = ops.findIndex(d => d.date === dayState.date);
+    const dayRecord = {
+        date:       dayState.date,
+        closedAt:   new Date().toISOString(),
+        closedBy:   loggedInRole,
+        totalDep:   s.totalDep,
+        totalWdr:   s.totalWdr,
+        totalBank:  s.totalBank,
+        netFlow:    s.netFlow,
+        totalUnpaid:s.totalUnpaid,
+        txCount:    s.txs.length,
+        txSnapshot: s.txs.map(t=>({id:t.id,customer:t.customer,type:t.type,amount:t.amount,timestamp:t.timestamp,by:t.by})),
+        carryover:  s.unpaidCustomers.map(c=>({name:c.name,balance:c.balance}))
+    };
+    if (existing>=0) ops[existing]=dayRecord; else ops.unshift(dayRecord);
+    saveDayOps(ops);
+
+    // Mark day as closed
+    dayState.closed  = true;
+    dayState.closedAt = new Date().toISOString();
+    saveDayState(dayState);
+
+    closeDayModal();
+    applyDayUI();
+    ledger.toast('✅ Day closed successfully! Unpaid balances carried over.');
+}
+
+/* ── NEW DAY MODAL ── */
+function openNewDayModal() {
+    if (!loggedInRole || !ROLES[loggedInRole].canClear) {
+        alert('⚠️ Only Admin can open a new day.');
+        return;
+    }
+    const lastDayOps = loadDayOps();
+    const lastDay    = lastDayOps[0];
+    const carryUnpaid= lastDay ? lastDay.carryover||[] : [];
+
+    // Build carryover display
+    let coHtml = '';
+    if (carryUnpaid.length > 0) {
+        const total = carryUnpaid.reduce((s,c)=>s+c.balance,0);
+        const items = carryUnpaid.slice(0,6).map(c=>`
+            <div class="carryover-item">
+                <span class="ci-name">${c.name}</span>
+                <span class="ci-amt">${fmt(c.balance)}</span>
+            </div>`).join('');
+        const more = carryUnpaid.length>6?`<div style="text-align:center;color:#adb5bd;font-size:.78rem;padding:4px;">+${carryUnpaid.length-6} more</div>`:'';
+        coHtml = `
+        <div class="carryover-section">
+            <h4>🔄 Carried Over from ${fmtDayDate(lastDay?.date)} — ${fmt(total)} total</h4>
+            ${items}${more}
+        </div>`;
+    }
+
+    document.getElementById('newDayModalBody').innerHTML = `
+        <div style="margin-bottom:16px;">
+            <label style="font-weight:700;color:#495057;font-size:.88rem;display:block;margin-bottom:6px;">New Day Date</label>
+            <input type="date" id="newDayDate" value="${todayStr()}" style="width:100%;padding:10px 13px;border:2px solid #dee2e6;border-radius:8px;font-size:1rem;outline:none;font-family:inherit;">
+        </div>
+        ${coHtml.length ? `<div class="modal-warn" style="background:#f0fff4;border-color:#c3e6cb;color:#1a5e35;">✅ ${carryUnpaid.length} unpaid customer balance${carryUnpaid.length!==1?'s':''} will continue into the new day. These are already in the system — nothing extra needs to be done.</div>` : '<div class="modal-warn" style="background:#f0fff4;border-color:#c3e6cb;color:#1a5e35;">✅ No pending carryovers. Clean start for the new day!</div>'}
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="closeNewDayModal()">Cancel</button>
+            <button class="btn-modal-open" onclick="confirmOpenNewDay()">🌅 Open New Day</button>
+        </div>`;
+    document.getElementById('newDayModal').style.display='flex';
+}
+
+function closeNewDayModal() {
+    document.getElementById('newDayModal').style.display='none';
+}
+
+function confirmOpenNewDay() {
+    const dateInput = document.getElementById('newDayDate').value;
+    if (!dateInput) { alert('Please select a date.'); return; }
+    dayState = { date: dateInput, closed: false, closedAt: null };
+    saveDayState(dayState);
+    closeNewDayModal();
+    applyDayUI();
+    ledger.toast(`🌅 New day opened: ${fmtDayDate(dateInput)}`);
+}
+
+/* ── DAY HISTORY PAGE ── */
+function renderDayHistory() {
+    const ops = loadDayOps();
+    const monthFilter = document.getElementById('dayHistoryMonth')?.value || '';
+
+    let filtered = [...ops];
+    if (monthFilter) filtered = filtered.filter(d=>d.date.slice(0,7)===monthFilter);
+
+    // Summary cards
+    const totalDays   = filtered.length;
+    const totalDep    = filtered.reduce((s,d)=>s+d.totalDep,0);
+    const totalWdr    = filtered.reduce((s,d)=>s+d.totalWdr,0);
+    const totalNet    = filtered.reduce((s,d)=>s+d.netFlow,0);
+    document.getElementById('dayHistorySummary').innerHTML = `
+        <div class="summary-card dark"><div class="sc-label">Days Closed</div><div class="sc-value">${totalDays}</div></div>
+        <div class="summary-card green"><div class="sc-label">Total Deposited</div><div class="sc-value">${fmt(totalDep)}</div></div>
+        <div class="summary-card red"><div class="sc-label">Total Withdrawn</div><div class="sc-value">${fmt(totalWdr)}</div></div>
+        <div class="summary-card ${totalNet>=0?'green':'red'}"><div class="sc-label">Net Flow</div><div class="sc-value">${fmt(Math.abs(totalNet))} ${totalNet>=0?'↑':'↓'}</div></div>`;
+
+    const container = document.getElementById('dayHistoryList');
+    if (!filtered.length) {
+        container.innerHTML='<div class="no-data">No closed days found for this period.</div>';
+        return;
+    }
+
+    container.innerHTML = filtered.map((d,i)=>{
+        const txRows = (d.txSnapshot||[]).map(t=>`
+            <div class="dh-tx-row">
+                <span>${t.type==='deposit'?'💰':'💸'} ${t.customer}</span>
+                <span style="color:${t.type==='deposit'?'#1a7a35':'#c0392b'};font-weight:700;">${t.type==='deposit'?'+':'-'}${fmt(t.amount)}</span>
+                <span style="color:#adb5bd;">${new Date(t.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
+            </div>`).join('');
+        const carryRows = (d.carryover||[]).map(c=>`
+            <div class="dh-tx-row">
+                <span>🔴 ${c.name}</span>
+                <span style="color:#c0392b;font-weight:700;">${fmt(c.balance)} unpaid</span>
+            </div>`).join('');
+        const isAdmin = loggedInRole && ROLES[loggedInRole].canClear;
+        return `
+        <div class="day-hist-card">
+            <div class="day-hist-header" onclick="toggleDayHistCard(${i})">
+                <div>
+                    <div class="day-hist-date">${fmtDayDate(d.date)}</div>
+                    <div style="font-size:.75rem;color:#adb5bd;margin-top:2px;">Closed at ${d.closedAt?new Date(d.closedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'—'} · ${d.txCount||0} transactions</div>
+                </div>
+                <div class="day-hist-meta">
+                    <div class="day-hist-amounts">
+                        <span class="dha-dep">+${fmt(d.totalDep)}</span>
+                        <span class="dha-wdr">-${fmt(d.totalWdr)}</span>
+                    </div>
+                    <span class="day-hist-chip chip-closed">Closed</span>
+                    ${isAdmin?`<button class="reopen-btn" onclick="event.stopPropagation();reopenDay('${d.date}')">🔄 Reconducte</button>`:''}
+                    ${isAdmin?`<button class="btn-delete-row" onclick="event.stopPropagation();deleteDayRecord('${d.date}')" style="background:#fff0f0;border-color:#f5c6cb;color:#dc3545;">🗑️ Delete</button>`:''}
+                    <span style="color:#adb5bd;font-size:1rem;">▾</span>
+                </div>
+            </div>
+            <div class="day-hist-body" id="dhb-${i}">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;margin-bottom:12px;">
+                    <div style="background:#f0fff4;border-radius:8px;padding:10px;text-align:center;">
+                        <div style="font-size:.72rem;color:#adb5bd;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Deposits</div>
+                        <div style="font-weight:900;color:#1a7a35;">${fmt(d.totalDep)}</div>
+                    </div>
+                    <div style="background:#fff0f0;border-radius:8px;padding:10px;text-align:center;">
+                        <div style="font-size:.72rem;color:#adb5bd;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Withdrawals</div>
+                        <div style="font-weight:900;color:#c0392b;">${fmt(d.totalWdr)}</div>
+                    </div>
+                    <div style="background:${d.netFlow>=0?'#f0fff4':'#fff0f0'};border-radius:8px;padding:10px;text-align:center;">
+                        <div style="font-size:.72rem;color:#adb5bd;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Net Flow</div>
+                        <div style="font-weight:900;color:${d.netFlow>=0?'#1a7a35':'#c0392b'};">${fmt(Math.abs(d.netFlow))}</div>
+                    </div>
+                </div>
+                ${txRows ? `<div style="font-weight:700;color:#2c3e50;font-size:.85rem;margin-bottom:6px;">📋 Transactions</div><div class="day-hist-txs">${txRows}</div>` : '<div class="dh-no-tx">No transactions recorded this day.</div>'}
+                ${carryRows ? `<div style="font-weight:700;color:#c0392b;font-size:.85rem;margin-top:12px;margin-bottom:6px;">🔄 Carryover (Unpaid)</div><div class="day-hist-txs">${carryRows}</div>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function toggleDayHistCard(i) {
+    const body = document.getElementById('dhb-'+i);
+    if (body) body.classList.toggle('open');
+}
+
+function deleteDayRecord(dateStr) {
+    if (!loggedInRole || !ROLES[loggedInRole].canClear) { alert('Admin only.'); return; }
+    if (!confirm(`🗑️ Delete history for ${fmtDayDate(dateStr)}?\n\nThis removes the closed-day record only. Actual transactions in the ledger are NOT affected.`)) return;
+    const ops = loadDayOps().filter(d => d.date !== dateStr);
+    saveDayOps(ops);
+    ledger.toast(`🗑️ Day record deleted: ${fmtDayDate(dateStr)}`);
+    renderDayHistory();
+}
+
+function deleteAllDayHistory() {
+    if (!loggedInRole || !ROLES[loggedInRole].canClear) { alert('Admin only.'); return; }
+    const ops = loadDayOps();
+    if (!ops.length) { alert('No history to delete.'); return; }
+    if (!confirm(`⚠️ Delete ALL ${ops.length} day record(s)?\n\nActual transactions in the ledger will NOT be deleted. Only the closed-day archive will be cleared.`)) return;
+    saveDayOps([]);
+    ledger.toast('🗑️ All day history cleared.');
+    renderDayHistory();
+}
+
+/* ── Reconduct / Reopen a past day ── */
+function reopenDay(dateStr) {
+    if (!loggedInRole || !ROLES[loggedInRole].canClear) { alert('Admin only.'); return; }
+    if (!confirm(`⚠️ Reconduct operations for ${fmtDayDate(dateStr)}?\n\nThis will reopen that day so you can add/edit transactions for that date. Current day will be temporarily set to ${fmtDayDate(dateStr)}.`)) return;
+
+    // Open new day for that past date
+    dayState = { date: dateStr, closed: false, closedAt: null, reconducted: true };
+    saveDayState(dayState);
+    applyDayUI();
+    ledger.toast(`🔄 Day reconducted: ${fmtDayDate(dateStr)} — you can now add operations.`);
+
+    // Switch to main ledger
+    document.querySelectorAll('.page-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById('tabMain').classList.add('active');
+    document.querySelector('.nav-tab').classList.add('active');
+}
+
+/* ── AUTO-CLOSE at midnight ── */
+function checkAutoClose() {
+    const now     = new Date();
+    const today   = now.toISOString().slice(0,10);
+    const msSinceMidnight = now.getHours()*3600000 + now.getMinutes()*60000 + now.getSeconds()*1000;
+    const msToMidnight    = 86400000 - msSinceMidnight;
+
+    // If dayState date is yesterday and still open → auto-close
+    if (!dayState.closed && dayState.date < today) {
+        // Auto close yesterday
+        const s = getTodaySummary(dayState.date);
+        const ops = loadDayOps();
+        const existing = ops.findIndex(d=>d.date===dayState.date);
+        const dayRecord = {
+            date:dayState.date, closedAt:new Date().toISOString(), closedBy:'auto',
+            totalDep:s.totalDep, totalWdr:s.totalWdr, totalBank:s.totalBank,
+            netFlow:s.netFlow, totalUnpaid:s.totalUnpaid, txCount:s.txs.length,
+            txSnapshot:s.txs, carryover:s.unpaidCustomers.map(c=>({name:c.name,balance:c.balance}))
+        };
+        if (existing>=0) ops[existing]=dayRecord; else ops.unshift(dayRecord);
+        saveDayOps(ops);
+        dayState.closed=true; dayState.closedAt=new Date().toISOString();
+        saveDayState(dayState);
+        applyDayUI();
+        ledger.toast('🌙 Previous day was auto-closed at midnight.');
+    }
+
+    // Countdown timer
+    const countdown = document.getElementById('dayAutoCloseCountdown');
+    if (!dayState.closed && countdown) {
+        const h = Math.floor(msToMidnight/3600000);
+        const m = Math.floor((msToMidnight%3600000)/60000);
+        countdown.textContent = `Auto-close in ${h}h ${m}m`;
+    } else if (countdown) {
+        countdown.textContent = '';
+    }
+
+    // Schedule next check in 1 minute
+    setTimeout(checkAutoClose, 60000);
+}
+
+// ── Patch applyPermissions to also update day UI ──
+const _origApplyPerms = applyPermissions;
+applyPermissions = function(role) {
+    _origApplyPerms(role);
+    applyDayUI();
+};
+
+// Init auto-close check
+setTimeout(checkAutoClose, 1000);
+
+// ════════════════════════════════════════════════════
+//  END DAY OPERATIONS
+// ════════════════════════════════════════════════════
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
