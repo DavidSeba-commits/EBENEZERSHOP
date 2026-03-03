@@ -386,6 +386,7 @@
         }
         .pdf-date-picker:focus { border-color: rgba(255,255,255,.5); }
         .pdf-date-picker::-webkit-calendar-picker-indicator { filter: invert(1); }
+
     </style>
 </head>
 <body>
@@ -449,10 +450,7 @@
 
         <!-- NAV TABS -->
         <nav class="nav-tabs">
-            <button class="nav-tab active" onclick="showTab('tabMain')">
-                <span class="tab-icon">🏠</span>Main Ledger
-            </button>
-            <button class="nav-tab" onclick="showTab('tabUnpaid')">
+            <button class="nav-tab active" onclick="showTab('tabUnpaid')">
                 <span class="tab-icon">🔴</span>Unpaid Balances
             </button>
             <button class="nav-tab" onclick="showTab('tabBank')">
@@ -475,150 +473,86 @@
             </div>
         </div>
 
-        <!-- DAY STATUS BAR -->
-        <div class="day-status-bar" id="dayStatusBar">
-            <div class="day-status-info">
-                <span class="day-badge open" id="dayStatusBadge">🟢 Day Open</span>
-                <span class="day-info-text" id="dayStatusText">Today's operations are active</span>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center;">
-                <span id="dayAutoCloseCountdown" style="color:rgba(255,255,255,.5);font-size:.72rem;font-weight:600;"></span>
-                <button class="btn-close-day" id="btnCloseDay" onclick="openDayCloseModal()">🔒 Close Day</button>
-            </div>
+        <!-- Hidden stubs so JS references don't crash -->
+        <div style="display:none;">
+            <span id="dayStatusBadge"></span><span id="dayStatusText"></span>
+            <button id="btnCloseDay"></button><span id="dayAutoCloseCountdown"></span>
         </div>
 
-        <!-- ══ PAGE: MAIN LEDGER ══ -->
-        <div id="tabMain" class="page-panel active">
+        <!-- ══ PAGE: UNPAID BALANCES ══ -->
+        <div id="tabUnpaid" class="page-panel active">
           <main class="main-content">
 
-            <section class="forms-section">
-                <!-- DEPOSIT -->
-                <div class="form-card">
-                    <div class="locked-overlay" id="depositLock">
-                        <div class="lk-icon">🔒</div>
-                        <div class="lk-text">Deposits Locked</div>
-                        <div class="lk-sub">Requires Deposit or Admin PIN</div>
-                    </div>
-                    <div class="day-closed-overlay" id="depositDayLock" style="display:none;">
-                        <div class="dco-icon">🌙</div>
-                        <div class="dco-text">Day Closed</div>
-                        <div class="dco-sub">Open a new day to record deposits</div>
-                    </div>
-                    <h3 class="deposit-icon"> Record Deposit (Paid)</h3>
-                    <form id="depositForm">
-                        <div class="form-group">
-                            <label>Customer Name</label>
-                            <input type="text" id="depositCustomer" required placeholder="Enter customer name">
-                        </div>
-                        <div class="form-group">
-                            <label>Amount Paid</label>
-                            <input type="number" id="depositAmount" required placeholder="0.00" min="0.01" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" id="depositDate">
-                        </div>
-                        <button type="submit" class="btn btn-deposit">💰 Record Payment</button>
-                    </form>
-                </div>
+            <!-- Hidden elements required by JS engine -->
+            <form id="depositForm" style="display:none;"><input type="text" id="depositCustomer"><input type="number" id="depositAmount"><input type="date" id="depositDate"><button type="submit"></button></form>
+            <form id="withdrawalForm" style="display:none;"><input type="text" id="withdrawalCustomer"><input type="number" id="withdrawalAmount"><input type="date" id="withdrawalDate"><button type="submit"></button></form>
+            <div id="depositLock" style="display:none;"></div>
+            <div id="withdrawalLock" style="display:none;"></div>
+            <div id="depositDayLock" style="display:none;"></div>
+            <div id="withdrawalDayLock" style="display:none;"></div>
+            <div style="display:none;"><canvas id="barChart"></canvas><div id="barNoData"></div><canvas id="donutChart"></canvas><div id="donutNoData"></div><span id="donutDepPct"></span><span id="donutWdrPct"></span><div id="donutSubtitle"></div><input type="date" id="statsDateFilter"><span id="statsDateLabel"></span></div>
+            <div style="display:none;" id="customerList"></div>
+            <div style="display:none;" id="transactionHistory"></div>
+            <span id="clearData" style="display:none;"></span>
 
-                <!-- WITHDRAWAL -->
-                <div class="form-card">
-                    <div class="locked-overlay" id="withdrawalLock">
-                        <div class="lk-icon">🔒</div>
-                        <div class="lk-text">Withdrawals Locked</div>
-                        <div class="lk-sub">Requires Withdrawal or Admin PIN</div>
-                    </div>
-                    <div class="day-closed-overlay" id="withdrawalDayLock" style="display:none;">
-                        <div class="dco-icon">🌙</div>
-                        <div class="dco-text">Day Closed</div>
-                        <div class="dco-sub">Open a new day to record withdrawals</div>
-                    </div>
-                    <h3 class="withdrawal-icon"> Record Withdrawal</h3>
-                    <form id="withdrawalForm">
-                        <div class="form-group">
-                            <label>Customer Name</label>
-                            <input type="text" id="withdrawalCustomer" required placeholder="Enter customer name">
-                        </div>
-                        <div class="form-group">
-                            <label>Amount Withdrawn</label>
-                            <input type="number" id="withdrawalAmount" required placeholder="0.00" min="0.01" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" id="withdrawalDate">
-                        </div>
-                        <button type="submit" class="btn btn-withdrawal">💸 Record Withdrawal</button>
-                    </form>
-                </div>
-            </section>
+            <!-- TOP: Stats + Add Customer side by side -->
+            <div style="display:grid;grid-template-columns:1fr auto;gap:18px;align-items:start;margin-bottom:20px;flex-wrap:wrap;">
 
-            <!-- DATE FILTER BAR -->
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f8f9fa;border:2px solid #e9ecef;border-radius:10px;padding:10px 16px;margin-bottom:14px;">
-                <span style="font-weight:700;color:#495057;font-size:.88rem;">📅 Filter by Date:</span>
-                <input type="date" id="statsDateFilter" style="padding:7px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:.88rem;outline:none;font-family:inherit;" oninput="ledger.updateDisplay()">
-                <button onclick="document.getElementById('statsDateFilter').value='';ledger.updateDisplay();" style="padding:7px 14px;border:2px solid #dee2e6;border-radius:8px;background:white;color:#6c757d;font-weight:700;font-size:.82rem;cursor:pointer;">✕ All Time</button>
-                <span id="statsDateLabel" style="color:#adb5bd;font-size:.78rem;font-weight:600;"></span>
-            </div>
-
-            <section class="stats-section">
+              <!-- Stats -->
+              <section class="stats-section" style="margin-bottom:0;">
                 <div class="stat-card green"><h4>Total Paid In</h4><div class="amount" id="totalReceived">$0.00</div></div>
                 <div class="stat-card"><h4>Total Withdrawn</h4><div class="amount" id="totalWithdrawn">$0.00</div></div>
                 <div class="stat-card orange"><h4>Outstanding Balance</h4><div class="amount" id="totalOutstanding">$0.00</div></div>
                 <div class="stat-card blue"><h4>Active Customers</h4><div class="amount" id="activeCustomers">0</div></div>
-            </section>
+              </section>
 
-            <!-- CHARTS -->
-            <section class="charts-section">
-                <!-- Daily Bar Chart -->
-                <div class="chart-card">
-                    <h3>📊 Daily Activity</h3>
-                    <div class="chart-period">
-                        <button class="period-btn active" onclick="setChartPeriod(7,this)">7 Days</button>
-                        <button class="period-btn" onclick="setChartPeriod(14,this)">14 Days</button>
-                        <button class="period-btn" onclick="setChartPeriod(30,this)">30 Days</button>
-                    </div>
-                    <div class="chart-wrap">
-                        <canvas id="barChart" height="200"></canvas>
-                        <div class="no-chart-data" id="barNoData" style="display:none;">No transactions yet to display.</div>
-                    </div>
-                    <div class="donut-legend" style="margin-top:10px;">
-                        <div class="legend-item"><div class="legend-dot" style="background:#28a745;"></div>Deposits</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#dc3545;"></div>Withdrawals</div>
-                    </div>
+              <!-- Add New Customer Card -->
+              <div id="addCustomerCard" style="background:#f0fff4;border:2px solid #c3e6cb;border-radius:12px;padding:16px 18px;min-width:240px;max-width:300px;position:relative;">
+                <div id="addCustLock" style="display:none;position:absolute;inset:0;background:rgba(248,248,248,.95);border-radius:12px;flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:5;">
+                  <span style="font-size:1.8em;">🔒</span>
+                  <span style="font-weight:800;color:#343a40;font-size:.9em;">Deposits Locked</span>
+                  <span style="font-size:.72em;color:#adb5bd;">Requires Deposit or Admin PIN</span>
                 </div>
-
-                <!-- Donut Pie Chart -->
-                <div class="chart-card">
-                    <h3>🍩 Deposit vs Withdrawal %</h3>
-                    <div class="chart-period">
-                        <button class="period-btn active" onclick="setDonutPeriod(7,this)">7 Days</button>
-                        <button class="period-btn" onclick="setDonutPeriod(30,this)">30 Days</button>
-                        <button class="period-btn" onclick="setDonutPeriod(0,this)">All Time</button>
-                    </div>
-                    <div class="chart-wrap" style="max-width:220px;margin:0 auto;">
-                        <canvas id="donutChart" height="220"></canvas>
-                        <div class="no-chart-data" id="donutNoData" style="display:none;">No transactions yet.</div>
-                    </div>
-                    <div class="donut-legend">
-                        <div class="legend-item"><div class="legend-dot" style="background:#28a745;"></div><span id="donutDepPct">0%</span> Paid</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#dc3545;"></div><span id="donutWdrPct">0%</span> Withdrawn</div>
-                    </div>
-                    <div style="text-align:center;margin-top:8px;font-size:.8rem;color:#6c757d;" id="donutSubtitle"></div>
+                <h3 style="color:#1a7a35;font-size:.95rem;margin-bottom:12px;display:flex;align-items:center;gap:6px;">➕ Add New Customer</h3>
+                <div style="margin-bottom:10px;">
+                  <label style="display:block;font-size:.78rem;font-weight:700;color:#495057;margin-bottom:4px;">Customer Name</label>
+                  <input type="text" id="newCustName" placeholder="Enter name…"
+                    style="width:100%;padding:8px 10px;border:2px solid #c3e6cb;border-radius:7px;font-size:.88rem;outline:none;font-family:inherit;"
+                    onkeydown="if(event.key==='Enter')document.getElementById('newCustAmount').focus()">
                 </div>
-            </section>
+                <div style="margin-bottom:12px;">
+                  <label style="display:block;font-size:.78rem;font-weight:700;color:#495057;margin-bottom:4px;">Amount Deposited</label>
+                  <input type="number" id="newCustAmount" placeholder="0.00" min="0.01" step="0.01"
+                    style="width:100%;padding:8px 10px;border:2px solid #c3e6cb;border-radius:7px;font-size:.88rem;outline:none;font-family:inherit;"
+                    onkeydown="if(event.key==='Enter')addNewCustomer()">
+                </div>
+                <button onclick="addNewCustomer()"
+                  style="width:100%;padding:9px;background:linear-gradient(135deg,#28a745,#1a7a35);color:white;border:none;border-radius:7px;font-size:.88rem;font-weight:700;cursor:pointer;letter-spacing:.4px;">
+                  💰 Add Customer
+                </button>
+              </div>
+            </div>
 
-            <div style="display:none;" id="customerList"></div>
-            <div style="display:none;" id="transactionHistory"></div>
-            <button class="clear-btn" id="clearData" style="display:none;">🗑️ Clear All Data</button>
-
-          </main>
-        </div>
-
-        <!-- ══ PAGE: UNPAID BALANCES ══ -->
-        <div id="tabUnpaid" class="page-panel">
-          <main class="main-content">
-            <h2 style="color:#2c3e50;margin-bottom:20px;">🔴 Unpaid Balances</h2>
+            <!-- DATE FILTER BAR -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:2px solid #dee2e6;border-radius:10px;padding:10px 16px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.05);">
+                <span style="font-weight:700;color:#495057;font-size:.88rem;white-space:nowrap;">📅 View by Date:</span>
+                <input type="date" id="viewDateFilter"
+                    style="padding:7px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:.88rem;outline:none;font-family:inherit;cursor:pointer;"
+                    onchange="applyDateFilter()">
+                <button onclick="setViewDate('today')"
+                    style="padding:7px 13px;border:2px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-weight:700;font-size:.82rem;cursor:pointer;">
+                    Today
+                </button>
+                <button onclick="setViewDate('yesterday')"
+                    style="padding:7px 13px;border:2px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-weight:700;font-size:.82rem;cursor:pointer;">
+                    Yesterday
+                </button>
+                <button onclick="setViewDate('all')"
+                    style="padding:7px 13px;border:2px solid #dee2e6;border-radius:8px;background:#f8f9fa;color:#495057;font-weight:700;font-size:.82rem;cursor:pointer;">
+                    All Time
+                </button>
+                <span id="viewDateLabel" style="color:#810f0f;font-size:.82rem;font-weight:700;margin-left:4px;"></span>
+            </div>
 
             <!-- Search Bar -->
             <section class="search-bar-section">
@@ -649,9 +583,9 @@
                             <th>Total Paid</th>
                             <th>Total Withdrawn</th>
                             <th>Outstanding Balance</th>
-                            <th>Last Transaction</th>
                             <th>Status</th>
-                            <th>Action</th>
+                            <th style="background:linear-gradient(135deg,#bd2130,#810f0f);min-width:200px;">💸 Withdraw</th>
+                            <th>Del</th>
                         </tr>
                     </thead>
                     <tbody id="unpaidTableBody">
@@ -851,8 +785,8 @@ function submitPin() {
         document.getElementById('userBadge').textContent=role.label;
         applyPermissions(role);
         // Set date filter to today by default
-        const df = document.getElementById('statsDateFilter');
-        if (df && !df.value) df.value = new Date().toISOString().slice(0,10);
+        const vdf = document.getElementById('viewDateFilter');
+        if (vdf && !vdf.value) vdf.value = new Date().toISOString().slice(0,10);
         ledger.updateDisplay();
         renderUnpaid();
         renderBankStock();
@@ -875,6 +809,37 @@ function applyPermissions(role) {
     document.getElementById('withdrawalLock').style.display = role.canWithdraw ? 'none':'flex';
     document.getElementById('clearData').style.display      = role.canClear    ? 'inline-block':'none';
     document.getElementById('bankLock').style.display       = role.canBank     ? 'none':'flex';
+    const addLock = document.getElementById('addCustLock');
+    if (addLock) addLock.style.display = role.canDeposit ? 'none' : 'flex';
+}
+
+function addNewCustomer() {
+    if (dayState && dayState.closed) { alert('⚠️ Day is closed. Please open a new day first.'); return; }
+    if (!loggedInRole || !ROLES[loggedInRole].canDeposit) { alert('🔒 Deposit permission required.'); return; }
+    const nameEl = document.getElementById('newCustName');
+    const amtEl  = document.getElementById('newCustAmount');
+    const name   = nameEl.value.trim();
+    const amount = parseFloat(amtEl.value);
+    if (!name)               { nameEl.focus(); nameEl.style.borderColor='#dc3545'; setTimeout(()=>nameEl.style.borderColor='#c3e6cb',1200); return; }
+    if (!amount || amount<=0){ amtEl.focus();  amtEl.style.borderColor='#dc3545';  setTimeout(()=>amtEl.style.borderColor='#c3e6cb',1200);  return; }
+    if (!ledger.customers[name]) {
+        ledger.customers[name] = {name, totalReceived:0, totalWithdrawn:0, balance:0, transactions:[]};
+    }
+    ledger.customers[name].totalReceived += amount;
+    ledger.customers[name].balance += amount;
+    const ts = new Date().toISOString();
+    const tx = {id:Date.now(), customer:name, type:'deposit', amount, timestamp:ts, balance:ledger.customers[name].balance, by:loggedInRole};
+    ledger.customers[name].transactions.push(tx);
+    ledger.transactions.unshift(tx);
+    ledger.save();
+    // Clear fields FIRST before any re-render
+    nameEl.value = '';
+    amtEl.value = '';
+    nameEl.style.borderColor='#28a745'; amtEl.style.borderColor='#28a745';
+    setTimeout(()=>{ nameEl.style.borderColor='#c3e6cb'; amtEl.style.borderColor='#c3e6cb'; },600);
+    nameEl.focus();
+    ledger.updateDisplay();
+    ledger.toast(`✅ ${name} — ${fmt(amount)} deposited`);
 }
 
 function logout() {
@@ -930,9 +895,12 @@ class DigitalLedger {
             e.preventDefault();
             if (loggedInRole && ROLES[loggedInRole].canBank) this.recordBankStock();
         });
-        document.getElementById('clearData').addEventListener('click', ()=>{
-            if (confirm('Clear ALL data? This cannot be undone.')) this.clearAll();
-        });
+        const clearBtn = document.getElementById('clearData');
+        if (clearBtn && clearBtn.tagName === 'BUTTON') {
+            clearBtn.addEventListener('click', ()=>{
+                if (confirm('Clear ALL data? This cannot be undone.')) this.clearAll();
+            });
+        }
     }
 
     recordDeposit() {
@@ -990,95 +958,40 @@ class DigitalLedger {
     }
 
     updateDisplay() {
-        const dateFilter = document.getElementById('statsDateFilter')?.value || '';
-        const label = document.getElementById('statsDateLabel');
+        // Use the view date filter if set, otherwise current day
+        const dateFilter = getViewDate();
+        const label = document.getElementById('viewDateLabel');
 
-        // Filter transactions by date
         const filteredTx = dateFilter
             ? this.transactions.filter(t => t.timestamp.slice(0,10) === dateFilter)
             : this.transactions;
 
-        // Compute totals from filtered transactions
         let rec = 0, wdr = 0;
         filteredTx.forEach(t => {
             if (t.type === 'deposit')    rec += t.amount;
             if (t.type === 'withdrawal') wdr += t.amount;
         });
 
-        // Active customers: those with balance > 0 on filtered date
-        // If no date filter, use all-time balances
-        let active = 0;
-        if (dateFilter) {
-            // Count customers who had at least one transaction on this date
-            const names = new Set(filteredTx.map(t => t.customer));
-            active = names.size;
-            if (label) label.textContent = `Showing: ${new Date(dateFilter+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}`;
-        } else {
-            Object.values(this.customers).forEach(c => { if (c.balance > 0) active++; });
-            if (label) label.textContent = 'Showing: All time';
+        const active = new Set(filteredTx.map(t => t.customer)).size;
+        if (label) {
+            if (dateFilter) {
+                const d = new Date(dateFilter+'T12:00:00');
+                label.textContent = '📊 ' + d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+            } else {
+                label.textContent = '📊 All Time';
+            }
         }
 
-        document.getElementById('totalReceived').textContent    = fmt(rec);
-        document.getElementById('totalWithdrawn').textContent   = fmt(wdr);
-        document.getElementById('totalOutstanding').textContent = fmt(rec - wdr);
-        document.getElementById('activeCustomers').textContent  = active;
-
-        // Customer list — filter by date if set
-        const customers = dateFilter
-            ? Object.values(this.customers).filter(c => c.transactions.some(t => t.timestamp.slice(0,10) === dateFilter))
-            : Object.values(this.customers);
-
-        const cl = document.getElementById('customerList');
-        cl.innerHTML = !customers.length
-            ? `<div class="no-data">${dateFilter ? 'No customers with transactions on this date.' : 'No customers yet. Add a deposit to get started.'}</div>`
-            : customers.sort((a,b)=>b.balance-a.balance).map(c => {
-                // Per-date received/withdrawn for this customer
-                const cTx = dateFilter ? c.transactions.filter(t=>t.timestamp.slice(0,10)===dateFilter) : null;
-                const cRec = cTx ? cTx.filter(t=>t.type==='deposit').reduce((s,t)=>s+t.amount,0) : c.totalReceived;
-                const cWdr = cTx ? cTx.filter(t=>t.type==='withdrawal').reduce((s,t)=>s+t.amount,0) : c.totalWithdrawn;
-                const cBal = dateFilter ? (cRec - cWdr) : c.balance;
-                return `
-                <div class="customer-card ${c.balance>0?'pending':'completed'}">
-                    <div class="customer-info">
-                        <h4>${c.name}</h4>
-                        <p>${c.balance>0?'Balance pending':'Settled'}</p>
-                    </div>
-                    <div style="text-align:center;">
-                        <div class="col-label">Paid</div>
-                        <div class="col-paid">${fmt(cRec)}</div>
-                    </div>
-                    <div style="text-align:center;">
-                        <div class="col-label">Withdrawn</div>
-                        <div class="col-withdraw">${fmt(cWdr)}</div>
-                    </div>
-                    <div style="text-align:center;">
-                        <div class="col-label">Balance</div>
-                        <div class="col-balance">${fmt(cBal)}</div>
-                    </div>
-                    <div class="status-indicator">${c.balance>0?'🔴':'🟢'}</div>
-                </div>`;
-            }).join('');
-
-        const txEl = document.getElementById('transactionHistory');
-        const icons = {admin:'👑',deposit:'💰',withdraw:'💸'};
-        txEl.innerHTML = !filteredTx.length
-            ? `<div class="no-data">${dateFilter ? 'No transactions on this date.' : 'No transactions yet.'}</div>`
-            : filteredTx.slice(0,15).map(t => {
-                const date = new Date(t.timestamp).toLocaleString();
-                const by = t.by ? `<span style="font-size:.72em;color:#adb5bd;margin-left:4px;">${icons[t.by]||''}</span>` : '';
-                const canDel = loggedInRole && ROLES[loggedInRole].canClear;
-                const delBtn = canDel ? `<button class="btn-delete-row" onclick="deleteTransaction(${t.id})" title="Delete this transaction">🗑️ Del</button>` : '';
-                return `<div class="transaction-item ${t.type}" id="tx-${t.id}">
-                    <div style="font-size:1.15em;">${t.type==='deposit'?'💰':'💸'}</div>
-                    <div class="transaction-details"><h5>${t.customer}${by}</h5><span>${date}</span></div>
-                    <div class="transaction-amount ${t.type}">${t.type==='deposit'?'+':'-'}${fmt(t.amount)}</div>
-                    <div style="font-size:.78em;color:#6c757d;">Bal: ${fmt(t.balance)}</div>
-                    ${delBtn}
-                </div>`;
-            }).join('');
+        const recv = document.getElementById('totalReceived');
+        const wdrEl = document.getElementById('totalWithdrawn');
+        const outEl = document.getElementById('totalOutstanding');
+        const actEl = document.getElementById('activeCustomers');
+        if (recv)  recv.textContent  = fmt(rec);
+        if (wdrEl) wdrEl.textContent = fmt(wdr);
+        if (outEl) outEl.textContent = fmt(rec - wdr);
+        if (actEl) actEl.textContent = active;
 
         renderUnpaid();
-        renderCharts();
     }
 
     toast(msg) {
@@ -1116,20 +1029,35 @@ function renderUnpaid() {
     const fromStr = document.getElementById('searchDateFrom')?.value;
     const toStr   = document.getElementById('searchDateTo')?.value;
     const status  = document.getElementById('searchStatus')?.value||'unpaid';
+    const viewDate = getViewDate(); // active date filter from top bar
 
     const fromDate = fromStr ? new Date(fromStr) : null;
     const toDate   = toStr   ? new Date(toStr+'T23:59:59') : null;
 
     let customers = Object.values(ledger.customers);
 
-    // Filter by status
-    if (status==='unpaid') customers=customers.filter(c=>c.balance>0);
-    else if (status==='paid') customers=customers.filter(c=>c.balance<=0);
+    // When viewing a specific date, compute per-day balances and filter accordingly
+    if (viewDate) {
+        customers = customers.map(c => {
+            const dayTx = c.transactions.filter(t => t.timestamp.slice(0,10) === viewDate);
+            const dayDep = dayTx.filter(t=>t.type==='deposit').reduce((s,t)=>s+t.amount,0);
+            const dayWdr = dayTx.filter(t=>t.type==='withdrawal').reduce((s,t)=>s+t.amount,0);
+            const dayBal = dayDep - dayWdr;
+            return { ...c, _dayDep: dayDep, _dayWdr: dayWdr, _dayBal: dayBal, _dayTx: dayTx, _dateFiltered: true };
+        }).filter(c => c._dayTx.length > 0); // only customers active on that day
+
+        if (status === 'unpaid') customers = customers.filter(c => c._dayBal > 0);
+        else if (status === 'paid') customers = customers.filter(c => c._dayBal <= 0);
+    } else {
+        // All-time mode
+        if (status==='unpaid') customers=customers.filter(c=>c.balance>0);
+        else if (status==='paid') customers=customers.filter(c=>c.balance<=0);
+    }
 
     // Filter by name
     if (nameQ) customers=customers.filter(c=>c.name.toLowerCase().includes(nameQ));
 
-    // Filter by last transaction date
+    // Filter by last transaction date (search bar dates — fine-grained filter on top of view date)
     if (fromDate||toDate) {
         customers=customers.filter(c=>{
             const lastTx = c.transactions.slice(-1)[0];
@@ -1141,10 +1069,10 @@ function renderUnpaid() {
         });
     }
 
-    // Summary
-    const totalUnpaid = customers.filter(c=>c.balance>0).reduce((s,c)=>s+c.balance,0);
-    const totalPaid   = customers.reduce((s,c)=>s+c.totalReceived,0);
-    const totalWdr    = customers.reduce((s,c)=>s+c.totalWithdrawn,0);
+    // Summary — use day values if date-filtered
+    const totalUnpaid = customers.filter(c=>c._dateFiltered?c._dayBal>0:c.balance>0).reduce((s,c)=>s+(c._dateFiltered?c._dayBal:c.balance),0);
+    const totalPaid   = customers.reduce((s,c)=>s+(c._dateFiltered?c._dayDep:c.totalReceived),0);
+    const totalWdr    = customers.reduce((s,c)=>s+(c._dateFiltered?c._dayWdr:c.totalWithdrawn),0);
     document.getElementById('unpaidSummary').innerHTML = `
         <div class="summary-card red"><div class="sc-label">Unpaid Balance</div><div class="sc-value">${fmt(totalUnpaid)}</div></div>
         <div class="summary-card green"><div class="sc-label">Total Paid</div><div class="sc-value">${fmt(totalPaid)}</div></div>
@@ -1158,26 +1086,51 @@ function renderUnpaid() {
         return;
     }
 
-    const canDel = loggedInRole && ROLES[loggedInRole].canClear;
-    customers.sort((a,b)=>b.balance-a.balance);
+    const canDel      = loggedInRole && ROLES[loggedInRole].canClear;
+    const canWithdraw = loggedInRole && ROLES[loggedInRole].canWithdraw;
+    customers.sort((a,b)=>(b._dateFiltered?b._dayBal:b.balance)-(a._dateFiltered?a._dayBal:a.balance));
     tbody.innerHTML = customers.map((c,i)=>{
-        const lastTx=c.transactions.slice(-1)[0];
-        const lastDate=lastTx?new Date(lastTx.timestamp).toLocaleDateString():'—';
-        const badge=c.balance>0
+        const dispPaid = c._dateFiltered ? c._dayDep  : c.totalReceived;
+        const dispWdr  = c._dateFiltered ? c._dayWdr  : c.totalWithdrawn;
+        const dispBal  = c._dateFiltered ? c._dayBal  : c.balance;
+        const badge = dispBal > 0
             ?`<span class="badge-unpaid">Unpaid</span>`
             :`<span class="badge-paid">Settled</span>`;
+        const cName = c.name.replace(/'/g,"\\'");
+
+        const withdrawCell = canWithdraw && c.balance > 0
+            ? `<td style="padding:8px 10px;">
+                <div style="display:flex;gap:5px;align-items:center;">
+                  <input type="number" id="wdrAmt-${i}" placeholder="Amount" min="0.01" step="0.01" max="${c.balance}"
+                    style="width:90px;padding:5px 7px;border:1.5px solid #f5c6cb;border-radius:6px;font-size:.82rem;outline:none;font-family:inherit;"
+                    onkeydown="if(event.key==='Enter'){quickWithdraw('${cName}',${i});}"
+                  >
+                  <button onclick="quickWithdraw('${cName}',${i})"
+                    style="padding:5px 10px;background:#bd2130;color:white;border:none;border-radius:6px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+                    Withdraw
+                  </button>
+                  <button onclick="quickWithdrawFull('${cName}',${c.balance})"
+                    title="Withdraw full balance: ${fmt(c.balance)}"
+                    style="padding:5px 8px;background:#810f0f;color:white;border:none;border-radius:6px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+                    All
+                  </button>
+                </div>
+               </td>`
+            : `<td style="color:#adb5bd;font-size:.78rem;text-align:center;">—</td>`;
+
         const delBtn = canDel
-            ? `<button class="btn-delete-row" onclick="deleteCustomer('${c.name.replace(/'/g,"\\'")}')">🗑️ Delete</button>`
-            : '';
+            ? `<td><button class="btn-delete-row" onclick="deleteCustomer('${cName}')">🗑️</button></td>`
+            : '<td></td>';
+
         return `<tr>
             <td>${i+1}</td>
             <td class="td-name">${c.name}</td>
-            <td class="td-paid">${fmt(c.totalReceived)}</td>
-            <td class="td-withdraw">${fmt(c.totalWithdrawn)}</td>
-            <td class="td-balance">${fmt(c.balance)}</td>
-            <td>${lastDate}</td>
+            <td class="td-paid">${fmt(dispPaid)}</td>
+            <td class="td-withdraw">${fmt(dispWdr)}</td>
+            <td class="td-balance">${fmt(dispBal)}</td>
             <td>${badge}</td>
-            <td>${delBtn}</td>
+            ${withdrawCell}
+            ${delBtn}
         </tr>`;
     }).join('');
 }
@@ -1188,6 +1141,65 @@ function resetSearch() {
     document.getElementById('searchDateTo').value='';
     document.getElementById('searchStatus').value='unpaid';
     renderUnpaid();
+}
+
+// ── Date filter helpers ──
+function getViewDate() {
+    const el = document.getElementById('viewDateFilter');
+    return el ? el.value : (dayState ? dayState.date : new Date().toISOString().slice(0,10));
+}
+
+function applyDateFilter() {
+    ledger.updateDisplay();
+}
+
+function setViewDate(preset) {
+    const el = document.getElementById('viewDateFilter');
+    if (!el) return;
+    if (preset === 'today') {
+        el.value = new Date().toISOString().slice(0,10);
+    } else if (preset === 'yesterday') {
+        const d = new Date(); d.setDate(d.getDate()-1);
+        el.value = d.toISOString().slice(0,10);
+    } else {
+        el.value = '';
+    }
+    ledger.updateDisplay();
+}
+
+function quickWithdraw(customerName, rowIdx) {
+    if (dayState && dayState.closed) { alert('⚠️ Day is closed. Please open a new day first.'); return; }
+    if (!loggedInRole || !ROLES[loggedInRole].canWithdraw) { alert('🔒 Withdrawal permission required.'); return; }
+    const inp = document.getElementById('wdrAmt-'+rowIdx);
+    const amount = parseFloat(inp ? inp.value : 0);
+    if (!amount || amount <= 0) { alert('Please enter a valid withdrawal amount.'); if(inp) inp.focus(); return; }
+    const cust = ledger.customers[customerName];
+    if (!cust) { alert('Customer not found.'); return; }
+    if (cust.balance < amount) { alert(`Insufficient balance. Available: ${fmt(cust.balance)}`); return; }
+    cust.totalWithdrawn += amount;
+    cust.balance -= amount;
+    const ts = new Date().toISOString();
+    const tx = {id:Date.now(),customer:customerName,type:'withdrawal',amount,timestamp:ts,balance:cust.balance,by:loggedInRole};
+    cust.transactions.push(tx);
+    ledger.transactions.unshift(tx);
+    ledger.save(); ledger.updateDisplay();
+    ledger.toast(`💸 Withdrawal of ${fmt(amount)} processed for ${customerName}`);
+}
+
+function quickWithdrawFull(customerName, balance) {
+    if (dayState && dayState.closed) { alert('⚠️ Day is closed. Please open a new day first.'); return; }
+    if (!loggedInRole || !ROLES[loggedInRole].canWithdraw) { alert('🔒 Withdrawal permission required.'); return; }
+    if (!confirm(`Withdraw full balance of ${fmt(balance)} for ${customerName}?`)) return;
+    const cust = ledger.customers[customerName];
+    if (!cust) { alert('Customer not found.'); return; }
+    cust.totalWithdrawn += balance;
+    cust.balance = 0;
+    const ts = new Date().toISOString();
+    const tx = {id:Date.now(),customer:customerName,type:'withdrawal',amount:balance,timestamp:ts,balance:0,by:loggedInRole};
+    cust.transactions.push(tx);
+    ledger.transactions.unshift(tx);
+    ledger.save(); ledger.updateDisplay();
+    ledger.toast(`💸 Full withdrawal of ${fmt(balance)} processed for ${customerName}`);
 }
 
 // ════════════════════════════
@@ -1565,276 +1577,9 @@ function deleteBankStock(id) {
     ledger.toast(`🗑️ Bank stock entry "${entry.item}" deleted.`);
 }
 
-// ════════════════════════════
-//  DAILY PDF REPORT
-// ════════════════════════════
-
-// Set today's date as default when app loads
-document.addEventListener('DOMContentLoaded', () => {
-    const dateInput = document.getElementById('pdfReportDate');
-    if (dateInput) dateInput.value = new Date().toISOString().slice(0,10);
-});
-
-function generateDailyPDF() {
-    const dateInput = document.getElementById('pdfReportDate');
-    const reportDate = dateInput.value || new Date().toISOString().slice(0,10);
-
-    // Filter transactions for the selected date
-    // Transactions store a 'timestamp' (ISO string), not a 'date' field — extract date portion for comparison
-    const txDate = t => t.date || (t.timestamp ? t.timestamp.slice(0, 10) : '');
-    const dayTx = ledger.transactions.filter(t => txDate(t) === reportDate);
-    const dayDeposits    = dayTx.filter(t => t.type === 'deposit');
-    const dayWithdrawals = dayTx.filter(t => t.type === 'withdrawal');
-    const dayBank        = (ledger.bankStock || []).filter(b => (b.date || (b.timestamp ? b.timestamp.slice(0, 10) : '')) === reportDate);
-
-    const totalDep = dayDeposits.reduce((s, t) => s + t.amount, 0);
-    const totalWdr = dayWithdrawals.reduce((s, t) => s + t.amount, 0);
-    const netFlow  = totalDep - totalWdr;
-    const totalBank= dayBank.reduce((s, b) => s + b.amount, 0);
-
-    // Format helpers
-    const fmtAmt = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-    const fmtDate = d => {
-        if (!d) return '';
-        const [y,m,dy] = d.split('-');
-        return `${dy}/${m}/${y}`;
-    };
-    const displayDate = fmtDate(reportDate);
-
-    // ── Build PDF using jsPDF ──
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-
-    const pageW = 210;
-    const pageH = 297;
-    const margin = 14;
-    const col = pageW - margin*2;
-    let y = 0;
-
-    // Helper: add page if needed
-    const checkPage = (need=10) => {
-        if (y + need > pageH - 14) { doc.addPage(); y = 20; }
-    };
-
-    // ── HEADER BANNER ──
-    doc.setFillColor(44, 62, 80);
-    doc.rect(0, 0, pageW, 36, 'F');
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(20); doc.setFont('helvetica','bold');
-    doc.text('SHOP EBENEZER', pageW/2, 13, {align:'center'});
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.text('Professional Transaction Management System', pageW/2, 19, {align:'center'});
-    doc.setFillColor(129, 15, 15);
-    doc.rect(0, 22, pageW, 14, 'F');
-    doc.setFontSize(11); doc.setFont('helvetica','bold');
-    doc.text(`DAILY OPERATIONS SUMMARY — ${displayDate}`, pageW/2, 31, {align:'center'});
-
-    y = 44;
-
-    // ── GENERATED INFO ──
-    doc.setTextColor(100,100,100);
-    doc.setFontSize(7.5); doc.setFont('helvetica','normal');
-    doc.text(`Generated by: ${loggedInRole ? ROLES[loggedInRole].label.replace(/[^\w\s]/gi,'').trim() : 'System'}`, margin, y);
-    doc.text(`Printed: ${new Date().toLocaleString()}`, pageW - margin, y, {align:'right'});
-    y += 8;
-
-    // ── DIVIDER ──
-    const drawDivider = (color=[200,200,200]) => {
-        doc.setDrawColor(...color); doc.setLineWidth(0.4);
-        doc.line(margin, y, pageW-margin, y);
-        y += 4;
-    };
-    drawDivider();
-
-    // ── SUMMARY CARDS ROW ──
-    const cards = [
-        { label:'Total Deposits', value: fmtAmt(totalDep), color:[39,174,96] },
-        { label:'Total Withdrawals', value: fmtAmt(totalWdr), color:[192,57,43] },
-        { label:'Net Cash Flow', value: fmtAmt(Math.abs(netFlow)) + (netFlow < 0 ? ' (-)' : ' (+)'), color: netFlow>=0 ? [41,128,185] : [155,89,182] },
-        { label:'Bank Stock In', value: fmtAmt(totalBank), color:[23,162,184] },
-    ];
-    const cw = (col - 6) / 4;
-    cards.forEach((c, i) => {
-        const cx = margin + i*(cw+2);
-        doc.setFillColor(...c.color);
-        doc.roundedRect(cx, y, cw, 22, 2, 2, 'F');
-        doc.setTextColor(255,255,255);
-        doc.setFontSize(7); doc.setFont('helvetica','bold');
-        doc.text(c.label.toUpperCase(), cx + cw/2, y+7, {align:'center'});
-        doc.setFontSize(9); doc.setFont('helvetica','bold');
-        const lines = doc.splitTextToSize(c.value, cw-4);
-        doc.text(lines[0], cx + cw/2, y+15, {align:'center'});
-    });
-    y += 28;
-
-    // ── SECTION: DEPOSITS ──
-    const drawSectionHeader = (title, color=[129,15,15]) => {
-        checkPage(14);
-        doc.setFillColor(...color);
-        doc.roundedRect(margin, y, col, 9, 1.5, 1.5, 'F');
-        doc.setTextColor(255,255,255);
-        doc.setFontSize(9.5); doc.setFont('helvetica','bold');
-        doc.text(title, margin+4, y+6.3);
-        y += 13;
-        doc.setTextColor(50,50,50);
-    };
-
-    const drawTableHeader = (cols) => {
-        doc.setFillColor(240,240,240);
-        doc.rect(margin, y, col, 7, 'F');
-        doc.setTextColor(80,80,80); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
-        let cx = margin + 2;
-        cols.forEach(c => {
-            doc.text(c.label, cx + (c.w/2), y + 5, {align: c.align||'center', maxWidth: c.w});
-            cx += c.w;
-        });
-        y += 7;
-        doc.setDrawColor(200,200,200); doc.setLineWidth(0.2);
-        doc.line(margin, y, pageW-margin, y);
-        y += 2;
-    };
-
-    const drawRow = (cols, values, rowIndex) => {
-        checkPage(9);
-        if (rowIndex % 2 === 0) { doc.setFillColor(252,252,252); doc.rect(margin, y, col, 8, 'F'); }
-        doc.setTextColor(40,40,40); doc.setFontSize(7.8); doc.setFont('helvetica','normal');
-        let cx = margin + 2;
-        cols.forEach((c, i) => {
-            const txt = String(values[i] ?? '');
-            doc.text(txt, cx + (c.align==='right' ? c.w-4 : c.w/2), y+5.5, {align: c.align||'center', maxWidth: c.w-2});
-            cx += c.w;
-        });
-        doc.setDrawColor(230,230,230); doc.setLineWidth(0.15);
-        doc.line(margin, y+8, pageW-margin, y+8);
-        y += 8;
-    };
-
-    // Deposits section
-    drawSectionHeader(`💰 DEPOSITS  (${dayDeposits.length} transaction${dayDeposits.length!==1?'s':''})`, [39,174,96]);
-    if (dayDeposits.length === 0) {
-        doc.setTextColor(160,160,160); doc.setFontSize(8); doc.setFont('helvetica','italic');
-        doc.text('No deposits recorded for this date.', margin+4, y+4);
-        y += 10;
-    } else {
-        const depCols = [
-            {label:'#',       w:8,   align:'center'},
-            {label:'Customer',w:52,  align:'left'},
-            {label:'Amount',  w:38,  align:'right'},
-            {label:'Recorded By', w:38, align:'center'},
-            {label:'Time / ID',   w:46, align:'center'},
-        ];
-        drawTableHeader(depCols);
-        dayDeposits.forEach((t, i) => {
-            drawRow(depCols, [
-                i+1,
-                t.customer,
-                fmtAmt(t.amount),
-                (t.by ? (ROLES[t.by] ? ROLES[t.by].label.replace(/[^\w\s]/gi,'').trim() : t.by) : 'N/A'),
-                t.id ? String(t.id).slice(-8) : '—'
-            ], i);
-        });
-        // Subtotal
-        y += 2;
-        doc.setFillColor(39,174,96); doc.setTextColor(255,255,255);
-        doc.roundedRect(margin, y, col, 8, 1, 1, 'F');
-        doc.setFontSize(8.5); doc.setFont('helvetica','bold');
-        doc.text('TOTAL DEPOSITS:', margin+4, y+5.5);
-        doc.text(fmtAmt(totalDep), pageW-margin-4, y+5.5, {align:'right'});
-        y += 13;
-    }
-
-    // Withdrawals section
-    drawSectionHeader(`💸 WITHDRAWALS  (${dayWithdrawals.length} transaction${dayWithdrawals.length!==1?'s':''})`, [192,57,43]);
-    if (dayWithdrawals.length === 0) {
-        doc.setTextColor(160,160,160); doc.setFontSize(8); doc.setFont('helvetica','italic');
-        doc.text('No withdrawals recorded for this date.', margin+4, y+4);
-        y += 10;
-    } else {
-        const wdrCols = [
-            {label:'#',       w:8,   align:'center'},
-            {label:'Customer',w:52,  align:'left'},
-            {label:'Amount',  w:38,  align:'right'},
-            {label:'Recorded By', w:38, align:'center'},
-            {label:'Time / ID',   w:46, align:'center'},
-        ];
-        drawTableHeader(wdrCols);
-        dayWithdrawals.forEach((t, i) => {
-            drawRow(wdrCols, [
-                i+1,
-                t.customer,
-                fmtAmt(t.amount),
-                (t.by ? (ROLES[t.by] ? ROLES[t.by].label.replace(/[^\w\s]/gi,'').trim() : t.by) : 'N/A'),
-                t.id ? String(t.id).slice(-8) : '—'
-            ], i);
-        });
-        y += 2;
-        doc.setFillColor(192,57,43); doc.setTextColor(255,255,255);
-        doc.roundedRect(margin, y, col, 8, 1, 1, 'F');
-        doc.setFontSize(8.5); doc.setFont('helvetica','bold');
-        doc.text('TOTAL WITHDRAWALS:', margin+4, y+5.5);
-        doc.text(fmtAmt(totalWdr), pageW-margin-4, y+5.5, {align:'right'});
-        y += 13;
-    }
-
-    // Bank Stock section
-    checkPage(20);
-    drawSectionHeader(`🏦 BANK STOCK RECEIVED  (${dayBank.length} entr${dayBank.length!==1?'ies':'y'})`, [23,100,170]);
-    if (dayBank.length === 0) {
-        doc.setTextColor(160,160,160); doc.setFontSize(8); doc.setFont('helvetica','italic');
-        doc.text('No bank stock entries for this date.', margin+4, y+4);
-        y += 10;
-    } else {
-        const bkCols = [
-            {label:'#',       w:8,   align:'center'},
-            {label:'Item / Description', w:54, align:'left'},
-            {label:'Source / Bank',w:42, align:'center'},
-            {label:'Amount',  w:38,  align:'right'},
-            {label:'Notes',   w:40,  align:'left'},
-        ];
-        drawTableHeader(bkCols);
-        dayBank.forEach((b, i) => {
-            drawRow(bkCols, [i+1, b.item||'', b.source||'', fmtAmt(b.amount), b.notes||''], i);
-        });
-        y += 2;
-        doc.setFillColor(23,100,170); doc.setTextColor(255,255,255);
-        doc.roundedRect(margin, y, col, 8, 1, 1, 'F');
-        doc.setFontSize(8.5); doc.setFont('helvetica','bold');
-        doc.text('TOTAL BANK STOCK:', margin+4, y+5.5);
-        doc.text(fmtAmt(totalBank), pageW-margin-4, y+5.5, {align:'right'});
-        y += 13;
-    }
-
-    // ── NET FLOW BOX ──
-    checkPage(24);
-    drawDivider();
-    const netColor = netFlow >= 0 ? [39,174,96] : [192,57,43];
-    doc.setFillColor(...netColor);
-    doc.roundedRect(margin, y, col, 18, 2.5, 2.5, 'F');
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(10); doc.setFont('helvetica','bold');
-    doc.text('NET CASH FLOW FOR THE DAY', margin+6, y+7);
-    doc.setFontSize(13);
-    doc.text(fmtAmt(Math.abs(netFlow)) + (netFlow >= 0 ? '  SURPLUS' : '  DEFICIT'), pageW-margin-4, y+12, {align:'right'});
-    doc.setFontSize(7.5); doc.setFont('helvetica','normal');
-    doc.text(`(Total Deposits ${fmtAmt(totalDep)}  −  Total Withdrawals ${fmtAmt(totalWdr)})`, pageW/2, y+16, {align:'center'});
-    y += 24;
-
-    // ── FOOTER on each page ──
-    const totalPages = doc.getNumberOfPages();
-    for (let p = 1; p <= totalPages; p++) {
-        doc.setPage(p);
-        doc.setFillColor(44,62,80);
-        doc.rect(0, pageH-7, pageW, 7, 'F');
-        doc.setTextColor(180,180,180); doc.setFontSize(5.5); doc.setFont('helvetica','normal');
-        doc.text('SHOP EBENEZER — Confidential Daily Report', margin, pageH-2.5);
-        doc.text(`Page ${p} of ${totalPages}`, pageW-margin, pageH-2.5, {align:'right'});
-        doc.text(displayDate, pageW/2, pageH-2.5, {align:'center'});
-    }
-
-    // ── SAVE ──
-    doc.save(`ShopEbenezer_DailySummary_${reportDate}.pdf`);
-    ledger.toast('📄 Daily PDF report downloaded successfully!');
-}
+// ════════════════════════════════════════════════════
+//  DAY OPERATIONS  —  Close / Open / History / Carryover
+// ════════════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════
 //  DAY OPERATIONS  —  Close / Open / History / Carryover
@@ -2160,31 +1905,117 @@ function deleteAllDayHistory() {
 /* ── Reconduct / Reopen a past day ── */
 function reopenDay(dateStr) {
     if (!loggedInRole || !ROLES[loggedInRole].canClear) { alert('Admin only.'); return; }
-    if (!confirm(`⚠️ Reconduct operations for ${fmtDayDate(dateStr)}?\n\nThis will reopen that day so you can add/edit transactions for that date. Current day will be temporarily set to ${fmtDayDate(dateStr)}.`)) return;
-
-    // Open new day for that past date
+    if (!confirm(`⚠️ Reconduct operations for ${fmtDayDate(dateStr)}?\n\nThis will reopen that day so you can add/edit transactions for that date.`)) return;
     dayState = { date: dateStr, closed: false, closedAt: null, reconducted: true };
     saveDayState(dayState);
     applyDayUI();
     ledger.toast(`🔄 Day reconducted: ${fmtDayDate(dateStr)} — you can now add operations.`);
-
-    // Switch to main ledger
+    // Navigate to unpaid balances
     document.querySelectorAll('.page-panel').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-    document.getElementById('tabMain').classList.add('active');
+    document.getElementById('tabUnpaid').classList.add('active');
     document.querySelector('.nav-tab').classList.add('active');
+    renderUnpaid();
 }
 
-/* ── AUTO-CLOSE at midnight ── */
+/* ── PREVIOUS DAY MODAL ── */
+function openPrevDayModal() {
+    const ops = loadDayOps();
+    const body = document.getElementById('prevDayModalBody');
+    const title = document.getElementById('prevDayModalTitle');
+
+    if (!ops.length) {
+        title.textContent = '📅 Previous Day Operations';
+        body.innerHTML = '<div class="no-data" style="padding:32px;">No closed days recorded yet.</div>';
+        document.getElementById('prevDayModal').style.display = 'flex';
+        return;
+    }
+
+    // Build day selector + view
+    const dayOptions = ops.map(d => `<option value="${d.date}">${fmtDayDate(d.date)} — Dep: ${fmt(d.totalDep)} / Wdr: ${fmt(d.totalWdr)}</option>`).join('');
+    title.textContent = '📅 Previous Day Operations';
+    body.innerHTML = `
+        <div style="margin-bottom:16px;">
+            <label style="font-weight:700;color:#495057;font-size:.85rem;display:block;margin-bottom:6px;">Select a day to review:</label>
+            <select id="prevDaySelect" onchange="renderPrevDayDetail()"
+                style="width:100%;padding:10px 13px;border:2px solid #dee2e6;border-radius:8px;font-size:.9rem;outline:none;font-family:inherit;">
+                ${dayOptions}
+            </select>
+        </div>
+        <div id="prevDayDetail"></div>`;
+    document.getElementById('prevDayModal').style.display = 'flex';
+    renderPrevDayDetail();
+}
+
+function renderPrevDayDetail() {
+    const sel = document.getElementById('prevDaySelect');
+    if (!sel) return;
+    const dateStr = sel.value;
+    const ops = loadDayOps();
+    const d = ops.find(o => o.date === dateStr);
+    if (!d) { document.getElementById('prevDayDetail').innerHTML = '<div class="no-data">Day not found.</div>'; return; }
+
+    const txRows = (d.txSnapshot||[]).map(t => `
+        <div style="display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #f0f0f0;background:white;border-radius:6px;margin-bottom:4px;">
+            <span style="font-size:1.1em;">${t.type==='deposit'?'💰':'💸'}</span>
+            <span style="font-weight:600;color:#2c3e50;">${t.customer}</span>
+            <span style="font-weight:800;color:${t.type==='deposit'?'#1a7a35':'#c0392b'};">${t.type==='deposit'?'+':'-'}${fmt(t.amount)}</span>
+            <span style="color:#adb5bd;font-size:.78rem;">${new Date(t.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
+        </div>`).join('');
+
+    const unpaidRows = (d.carryover||[]).length ? (d.carryover||[]).map(c => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#fff0f0;border-radius:6px;margin-bottom:4px;border-left:3px solid #dc3545;">
+            <span style="font-weight:600;color:#2c3e50;">🔴 ${c.name}</span>
+            <span style="font-weight:800;color:#c0392b;">${fmt(c.balance)} unpaid</span>
+        </div>`).join('') : '<div style="color:#adb5bd;font-size:.85rem;padding:6px;">No unpaid balances on this day.</div>';
+
+    const isAdmin = loggedInRole && ROLES[loggedInRole].canClear;
+
+    document.getElementById('prevDayDetail').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+            <div style="background:#f0fff4;border-radius:8px;padding:12px;text-align:center;">
+                <div style="font-size:.72rem;color:#adb5bd;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Deposits</div>
+                <div style="font-weight:900;color:#1a7a35;font-size:1.2em;">${fmt(d.totalDep)}</div>
+                <div style="font-size:.72rem;color:#adb5bd;">${(d.txSnapshot||[]).filter(t=>t.type==='deposit').length} tx</div>
+            </div>
+            <div style="background:#fff0f0;border-radius:8px;padding:12px;text-align:center;">
+                <div style="font-size:.72rem;color:#adb5bd;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Withdrawals</div>
+                <div style="font-weight:900;color:#c0392b;font-size:1.2em;">${fmt(d.totalWdr)}</div>
+                <div style="font-size:.72rem;color:#adb5bd;">${(d.txSnapshot||[]).filter(t=>t.type==='withdrawal').length} tx</div>
+            </div>
+            <div style="background:${d.netFlow>=0?'#f0fff4':'#fff0f0'};border-radius:8px;padding:12px;text-align:center;">
+                <div style="font-size:.72rem;color:#adb5bd;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Net Flow</div>
+                <div style="font-weight:900;color:${d.netFlow>=0?'#1a7a35':'#c0392b'};font-size:1.2em;">${fmt(Math.abs(d.netFlow))}</div>
+                <div style="font-size:.72rem;color:#adb5bd;">${d.netFlow>=0?'Surplus':'Deficit'}</div>
+            </div>
+        </div>
+        ${d.totalUnpaid>0?`<div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.85rem;font-weight:600;color:#856404;">⚠️ Unpaid at close: ${fmt(d.totalUnpaid)} across ${(d.carryover||[]).length} customer(s)</div>`:''}
+        <div style="font-weight:700;color:#2c3e50;font-size:.88rem;margin-bottom:8px;">📋 Transactions (${(d.txSnapshot||[]).length})</div>
+        <div style="max-height:220px;overflow-y:auto;margin-bottom:14px;">
+            ${txRows || '<div style="color:#adb5bd;font-size:.85rem;padding:8px;">No transactions recorded.</div>'}
+        </div>
+        <div style="font-weight:700;color:#c0392b;font-size:.88rem;margin-bottom:8px;">🔴 Unpaid Balances at Close</div>
+        <div style="max-height:160px;overflow-y:auto;margin-bottom:16px;">${unpaidRows}</div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+            ${isAdmin?`<button onclick="closePrevDayModal();reopenDay('${d.date}')" style="padding:8px 16px;background:linear-gradient(135deg,#f0884a,#c75221);color:white;border:none;border-radius:7px;font-weight:700;font-size:.82rem;cursor:pointer;">🔄 Reconducte This Day</button>`:''}
+            <button onclick="closePrevDayModal()" style="padding:8px 16px;background:#6c757d;color:white;border:none;border-radius:7px;font-weight:700;font-size:.82rem;cursor:pointer;">Close</button>
+        </div>`;
+}
+
+function closePrevDayModal() {
+    document.getElementById('prevDayModal').style.display = 'none';
+}
+
+/* ── AUTO-CLOSE at midnight + AUTO-OPEN new day ── */
 function checkAutoClose() {
     const now     = new Date();
     const today   = now.toISOString().slice(0,10);
     const msSinceMidnight = now.getHours()*3600000 + now.getMinutes()*60000 + now.getSeconds()*1000;
     const msToMidnight    = 86400000 - msSinceMidnight;
 
-    // If dayState date is yesterday and still open → auto-close
+    // If dayState date is yesterday and still open → auto-close and auto-open today
     if (!dayState.closed && dayState.date < today) {
-        // Auto close yesterday
+        // Auto-close the old day
         const s = getTodaySummary(dayState.date);
         const ops = loadDayOps();
         const existing = ops.findIndex(d=>d.date===dayState.date);
@@ -2196,10 +2027,24 @@ function checkAutoClose() {
         };
         if (existing>=0) ops[existing]=dayRecord; else ops.unshift(dayRecord);
         saveDayOps(ops);
-        dayState.closed=true; dayState.closedAt=new Date().toISOString();
+
+        // Auto-open today
+        dayState = { date: today, closed: false, closedAt: null, autoOpened: true };
         saveDayState(dayState);
         applyDayUI();
-        ledger.toast('🌙 Previous day was auto-closed at midnight.');
+        ledger.updateDisplay();
+        renderUnpaid();
+        ledger.toast(`🌅 New day auto-started: ${fmtDayDate(today)}. Yesterday archived.`);
+    }
+
+    // If day is closed and it's a new calendar day → auto-open new day
+    if (dayState.closed && dayState.date < today) {
+        dayState = { date: today, closed: false, closedAt: null, autoOpened: true };
+        saveDayState(dayState);
+        applyDayUI();
+        ledger.updateDisplay();
+        renderUnpaid();
+        ledger.toast(`🌅 New day auto-started: ${fmtDayDate(today)}`);
     }
 
     // Countdown timer
@@ -2230,6 +2075,183 @@ setTimeout(checkAutoClose, 1000);
 //  END DAY OPERATIONS
 // ════════════════════════════════════════════════════
 </script>
+
+<!-- ════════════ DAILY PDF REPORT ════════════ -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('pdfReportDate');
+    if (dateInput) dateInput.value = new Date().toISOString().slice(0,10);
+});
+
+function generateDailyPDF() {
+    const dateInput = document.getElementById('pdfReportDate');
+    const reportDate = dateInput.value || new Date().toISOString().slice(0,10);
+
+    const txDate = t => t.timestamp ? t.timestamp.slice(0,10) : '';
+    const dayTx          = ledger.transactions.filter(t => txDate(t) === reportDate);
+    const dayDeposits    = dayTx.filter(t => t.type === 'deposit');
+    const dayWithdrawals = dayTx.filter(t => t.type === 'withdrawal');
+    const dayBank        = (ledger.bankStock||[]).filter(b => (b.timestamp||'').slice(0,10) === reportDate);
+
+    const totalDep  = dayDeposits.reduce((s,t)=>s+t.amount, 0);
+    const totalWdr  = dayWithdrawals.reduce((s,t)=>s+t.amount, 0);
+    const netFlow   = totalDep - totalWdr;
+    const totalBank = dayBank.reduce((s,b)=>s+b.amount, 0);
+
+    const fmtAmt = v => '$' + v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const fmtDate = d => { if(!d)return''; const[y,m,dy]=d.split('-'); return `${dy}/${m}/${y}`; };
+    const displayDate = fmtDate(reportDate);
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pageW=210, pageH=297, margin=14, col=pageW-margin*2;
+    let y=0;
+
+    const checkPage = (need=10) => { if(y+need>pageH-14){doc.addPage();y=20;} };
+
+    // Header
+    doc.setFillColor(44,62,80); doc.rect(0,0,pageW,36,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(20); doc.setFont('helvetica','bold');
+    doc.text('SHOP EBENEZER',pageW/2,13,{align:'center'});
+    doc.setFontSize(9); doc.setFont('helvetica','normal');
+    doc.text('Professional Transaction Management System',pageW/2,19,{align:'center'});
+    doc.setFillColor(129,15,15); doc.rect(0,22,pageW,14,'F');
+    doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text(`DAILY OPERATIONS SUMMARY — ${displayDate}`,pageW/2,31,{align:'center'});
+    y=44;
+
+    doc.setTextColor(100,100,100); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+    doc.text(`Generated by: ${loggedInRole?ROLES[loggedInRole].label.replace(/[^\w\s]/gi,'').trim():'System'}`,margin,y);
+    doc.text(`Printed: ${new Date().toLocaleString()}`,pageW-margin,y,{align:'right'});
+    y+=8;
+
+    const drawDivider = (color=[200,200,200]) => { doc.setDrawColor(...color);doc.setLineWidth(0.4);doc.line(margin,y,pageW-margin,y);y+=4; };
+    drawDivider();
+
+    // Summary cards
+    const cards=[
+        {label:'Total Deposits',   value:fmtAmt(totalDep),  color:[39,174,96]},
+        {label:'Total Withdrawals',value:fmtAmt(totalWdr),  color:[192,57,43]},
+        {label:'Net Cash Flow',    value:fmtAmt(Math.abs(netFlow))+(netFlow<0?' (-)':' (+)'), color:netFlow>=0?[41,128,185]:[155,89,182]},
+        {label:'Bank Stock In',    value:fmtAmt(totalBank), color:[23,162,184]},
+    ];
+    const cw=(col-6)/4;
+    cards.forEach((c,i)=>{
+        const cx=margin+i*(cw+2);
+        doc.setFillColor(...c.color); doc.roundedRect(cx,y,cw,22,2,2,'F');
+        doc.setTextColor(255,255,255);
+        doc.setFontSize(7); doc.setFont('helvetica','bold');
+        doc.text(c.label.toUpperCase(),cx+cw/2,y+7,{align:'center'});
+        doc.setFontSize(9); doc.setFont('helvetica','bold');
+        doc.text(doc.splitTextToSize(c.value,cw-4)[0],cx+cw/2,y+15,{align:'center'});
+    });
+    y+=28;
+
+    const drawSectionHeader = (title,color=[129,15,15]) => {
+        checkPage(14);
+        doc.setFillColor(...color); doc.roundedRect(margin,y,col,9,1.5,1.5,'F');
+        doc.setTextColor(255,255,255); doc.setFontSize(9.5); doc.setFont('helvetica','bold');
+        doc.text(title,margin+4,y+6.3); y+=13; doc.setTextColor(50,50,50);
+    };
+    const drawTableHeader = cols => {
+        doc.setFillColor(240,240,240); doc.rect(margin,y,col,7,'F');
+        doc.setTextColor(80,80,80); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+        let cx=margin+2;
+        cols.forEach(c=>{ doc.text(c.label,cx+(c.w/2),y+5,{align:c.align||'center',maxWidth:c.w}); cx+=c.w; });
+        y+=7; doc.setDrawColor(200,200,200); doc.setLineWidth(0.2); doc.line(margin,y,pageW-margin,y); y+=2;
+    };
+    const drawRow = (cols,values,ri) => {
+        checkPage(9);
+        if(ri%2===0){doc.setFillColor(252,252,252);doc.rect(margin,y,col,8,'F');}
+        doc.setTextColor(40,40,40); doc.setFontSize(7.8); doc.setFont('helvetica','normal');
+        let cx=margin+2;
+        cols.forEach((c,i)=>{ doc.text(String(values[i]??''),cx+(c.align==='right'?c.w-4:c.w/2),y+5.5,{align:c.align||'center',maxWidth:c.w-2}); cx+=c.w; });
+        doc.setDrawColor(230,230,230); doc.setLineWidth(0.15); doc.line(margin,y+8,pageW-margin,y+8); y+=8;
+    };
+
+    // Deposits
+    drawSectionHeader(`💰 DEPOSITS  (${dayDeposits.length} transaction${dayDeposits.length!==1?'s':''})`, [39,174,96]);
+    if(!dayDeposits.length){
+        doc.setTextColor(160,160,160);doc.setFontSize(8);doc.setFont('helvetica','italic');
+        doc.text('No deposits recorded for this date.',margin+4,y+4);y+=10;
+    } else {
+        const dc=[{label:'#',w:8,align:'center'},{label:'Customer',w:52,align:'left'},{label:'Amount',w:38,align:'right'},{label:'Recorded By',w:38,align:'center'},{label:'Time / ID',w:46,align:'center'}];
+        drawTableHeader(dc);
+        dayDeposits.forEach((t,i)=>drawRow(dc,[i+1,t.customer,fmtAmt(t.amount),(t.by?(ROLES[t.by]?ROLES[t.by].label.replace(/[^\w\s]/gi,'').trim():t.by):'N/A'),t.id?String(t.id).slice(-8):'—'],i));
+        y+=2; doc.setFillColor(39,174,96);doc.setTextColor(255,255,255);
+        doc.roundedRect(margin,y,col,8,1,1,'F');doc.setFontSize(8.5);doc.setFont('helvetica','bold');
+        doc.text('TOTAL DEPOSITS:',margin+4,y+5.5);doc.text(fmtAmt(totalDep),pageW-margin-4,y+5.5,{align:'right'});y+=13;
+    }
+
+    // Withdrawals
+    drawSectionHeader(`💸 WITHDRAWALS  (${dayWithdrawals.length} transaction${dayWithdrawals.length!==1?'s':''})`, [192,57,43]);
+    if(!dayWithdrawals.length){
+        doc.setTextColor(160,160,160);doc.setFontSize(8);doc.setFont('helvetica','italic');
+        doc.text('No withdrawals recorded for this date.',margin+4,y+4);y+=10;
+    } else {
+        const wc=[{label:'#',w:8,align:'center'},{label:'Customer',w:52,align:'left'},{label:'Amount',w:38,align:'right'},{label:'Recorded By',w:38,align:'center'},{label:'Time / ID',w:46,align:'center'}];
+        drawTableHeader(wc);
+        dayWithdrawals.forEach((t,i)=>drawRow(wc,[i+1,t.customer,fmtAmt(t.amount),(t.by?(ROLES[t.by]?ROLES[t.by].label.replace(/[^\w\s]/gi,'').trim():t.by):'N/A'),t.id?String(t.id).slice(-8):'—'],i));
+        y+=2; doc.setFillColor(192,57,43);doc.setTextColor(255,255,255);
+        doc.roundedRect(margin,y,col,8,1,1,'F');doc.setFontSize(8.5);doc.setFont('helvetica','bold');
+        doc.text('TOTAL WITHDRAWALS:',margin+4,y+5.5);doc.text(fmtAmt(totalWdr),pageW-margin-4,y+5.5,{align:'right'});y+=13;
+    }
+
+    // Bank Stock
+    checkPage(20);
+    drawSectionHeader(`🏦 BANK STOCK RECEIVED  (${dayBank.length} entr${dayBank.length!==1?'ies':'y'})`, [23,100,170]);
+    if(!dayBank.length){
+        doc.setTextColor(160,160,160);doc.setFontSize(8);doc.setFont('helvetica','italic');
+        doc.text('No bank stock entries for this date.',margin+4,y+4);y+=10;
+    } else {
+        const bc=[{label:'#',w:8,align:'center'},{label:'Item / Description',w:54,align:'left'},{label:'Source / Bank',w:42,align:'center'},{label:'Amount',w:38,align:'right'},{label:'Notes',w:40,align:'left'}];
+        drawTableHeader(bc);
+        dayBank.forEach((b,i)=>drawRow(bc,[i+1,b.item||'',b.source||'',fmtAmt(b.amount),b.notes||''],i));
+        y+=2; doc.setFillColor(23,100,170);doc.setTextColor(255,255,255);
+        doc.roundedRect(margin,y,col,8,1,1,'F');doc.setFontSize(8.5);doc.setFont('helvetica','bold');
+        doc.text('TOTAL BANK STOCK:',margin+4,y+5.5);doc.text(fmtAmt(totalBank),pageW-margin-4,y+5.5,{align:'right'});y+=13;
+    }
+
+    // Net flow box
+    checkPage(24); drawDivider();
+    const netColor=netFlow>=0?[39,174,96]:[192,57,43];
+    doc.setFillColor(...netColor); doc.roundedRect(margin,y,col,18,2.5,2.5,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.text('NET CASH FLOW FOR THE DAY',margin+6,y+7);
+    doc.setFontSize(13);
+    doc.text(fmtAmt(Math.abs(netFlow))+(netFlow>=0?'  SURPLUS':'  DEFICIT'),pageW-margin-4,y+12,{align:'right'});
+    doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+    doc.text(`(Total Deposits ${fmtAmt(totalDep)}  −  Total Withdrawals ${fmtAmt(totalWdr)})`,pageW/2,y+16,{align:'center'});
+    y+=24;
+
+    // Footer on each page
+    const totalPages=doc.getNumberOfPages();
+    for(let p=1;p<=totalPages;p++){
+        doc.setPage(p);
+        doc.setFillColor(44,62,80); doc.rect(0,pageH-7,pageW,7,'F');
+        doc.setTextColor(180,180,180);doc.setFontSize(5.5);doc.setFont('helvetica','normal');
+        doc.text('SHOP EBENEZER — Confidential Daily Report',margin,pageH-2.5);
+        doc.text(`Page ${p} of ${totalPages}`,pageW-margin,pageH-2.5,{align:'right'});
+        doc.text(displayDate,pageW/2,pageH-2.5,{align:'center'});
+    }
+
+    doc.save(`ShopEbenezer_DailySummary_${reportDate}.pdf`);
+    ledger.toast('📄 Daily PDF report downloaded successfully!');
+}
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- ══ PREVIOUS DAY MODAL ══ -->
+<div class="modal-overlay" id="prevDayModal" style="display:none;" onclick="if(event.target===this)closePrevDayModal()">
+    <div class="modal-box" style="max-width:620px;width:95%;">
+        <div class="modal-header">
+            <h2 id="prevDayModalTitle">📅 Previous Day Operations</h2>
+            <button class="modal-close-x" onclick="closePrevDayModal()">✕</button>
+        </div>
+        <div class="modal-body" id="prevDayModalBody" style="max-height:70vh;overflow-y:auto;"></div>
+    </div>
+</div>
+
+
 </body>
 </html>
