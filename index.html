@@ -1088,7 +1088,17 @@ function renderUnpaid() {
 
     const canDel      = loggedInRole && ROLES[loggedInRole].canClear;
     const canWithdraw = loggedInRole && ROLES[loggedInRole].canWithdraw;
-    customers.sort((a,b)=>(b._dateFiltered?b._dayBal:b.balance)-(a._dateFiltered?a._dayBal:a.balance));
+    // Sort by first deposit timestamp so that the first customer to deposit is #1, second is #2, etc.
+    customers.sort((a,b)=>{
+        const getFirstTs = c => {
+            const txs = c._dateFiltered
+                ? c._dayTx.filter(t=>t.type==='deposit')
+                : c.transactions.filter(t=>t.type==='deposit');
+            if (!txs.length) return Infinity;
+            return Math.min(...txs.map(t=>new Date(t.timestamp).getTime()));
+        };
+        return getFirstTs(a) - getFirstTs(b);
+    });
     tbody.innerHTML = customers.map((c,i)=>{
         const dispPaid = c._dateFiltered ? c._dayDep  : c.totalReceived;
         const dispWdr  = c._dateFiltered ? c._dayWdr  : c.totalWithdrawn;
