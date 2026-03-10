@@ -2235,6 +2235,67 @@ function generateDailyPDF() {
     doc.text(`(Total Deposits ${fmtAmt(totalDep)}  −  Total Withdrawals ${fmtAmt(totalWdr)})`,pageW/2,y+16,{align:'center'});
     y+=24;
 
+    // ── Unpaid Balances Section — filtered to reportDate only ──
+    // For each customer, compute deposits & withdrawals on reportDate specifically.
+    // A customer is "unpaid" for that date if their deposits that day exceed their withdrawals that day.
+    const allCustomers = Object.values(ledger.customers);
+    const unpaidCustomers = allCustomers
+        .map(c => {
+            const dayTx  = c.transactions.filter(t => (t.timestamp||'').slice(0,10) === reportDate);
+            const dayDep = dayTx.filter(t => t.type==='deposit').reduce((s,t)=>s+t.amount,0);
+            const dayWdr = dayTx.filter(t => t.type==='withdrawal').reduce((s,t)=>s+t.amount,0);
+            const dayBal = dayDep - dayWdr;
+            return { name: c.name, dayDep, dayWdr, dayBal, firstTs: dayTx.length ? Math.min(...dayTx.map(t=>new Date(t.timestamp).getTime())) : Infinity };
+        })
+        .filter(c => c.dayBal > 0)                        // only truly unpaid for that day
+        .sort((a,b) => a.firstTs - b.firstTs);             // order by first transaction of the day
+
+    checkPage(20);
+    drawDivider([200,200,200]);
+    drawSectionHeader(`🔴 UNPAID BALANCES FOR ${displayDate}  (${unpaidCustomers.length} customer${unpaidCustomers.length!==1?'s':''})`, [129,15,15]);
+
+    if (!unpaidCustomers.length) {
+        doc.setTextColor(160,160,160); doc.setFontSize(8); doc.setFont('helvetica','italic');
+        doc.text(`All customers settled their balance on ${displayDate}.`, margin+4, y+4); y+=12;
+    } else {
+        const uc=[
+            {label:'#',              w:8,  align:'center'},
+            {label:'Customer Name',  w:62, align:'left'},
+            {label:'Paid In',        w:38, align:'right'},
+            {label:'Withdrawn',      w:38, align:'right'},
+            {label:'Still Owes',     w:36, align:'right'}
+        ];
+        drawTableHeader(uc);
+
+        let grandUnpaid = 0;
+        unpaidCustomers.forEach((c,i) => {
+            grandUnpaid += c.dayBal;
+            checkPage(9);
+            doc.setFillColor(i%2===0 ? 255 : 253, i%2===0 ? 245 : 242, i%2===0 ? 245 : 242);
+            doc.rect(margin, y, col, 8, 'F');
+            doc.setTextColor(40,40,40); doc.setFontSize(7.8); doc.setFont('helvetica','normal');
+            let cx = margin+2;
+            const vals = [i+1, c.name, fmtAmt(c.dayDep), fmtAmt(c.dayWdr), fmtAmt(c.dayBal)];
+            uc.forEach((col_def, vi) => {
+                if (vi === 4) { doc.setTextColor(192,57,43); doc.setFont('helvetica','bold'); }
+                else          { doc.setTextColor(40,40,40);  doc.setFont('helvetica','normal'); }
+                doc.text(String(vals[vi]??''), cx+(col_def.align==='right'? col_def.w-4 : col_def.w/2), y+5.5,
+                    {align: col_def.align||'center', maxWidth: col_def.w-2});
+                cx += col_def.w;
+            });
+            doc.setDrawColor(230,230,230); doc.setLineWidth(0.15); doc.line(margin,y+8,pageW-margin,y+8); y+=8;
+        });
+
+        y+=3;
+        checkPage(10);
+        doc.setFillColor(129,15,15); doc.setTextColor(255,255,255);
+        doc.roundedRect(margin,y,col,9,1,1,'F');
+        doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+        doc.text(`TOTAL UNPAID FOR ${displayDate}  (${unpaidCustomers.length} customer${unpaidCustomers.length!==1?'s':''})`, margin+4, y+6);
+        doc.text(fmtAmt(grandUnpaid), pageW-margin-4, y+6, {align:'right'});
+        y+=14;
+    }
+
     // Footer on each page
     const totalPages=doc.getNumberOfPages();
     for(let p=1;p<=totalPages;p++){
