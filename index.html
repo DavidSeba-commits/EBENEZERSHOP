@@ -497,6 +497,11 @@
 
             <!-- TOP: Stats + Add Customer side by side -->
             <div style="display:grid;grid-template-columns:1fr auto;gap:18px;align-items:start;margin-bottom:20px;flex-wrap:wrap;">
+            <!-- customer cards wrapper -->
+            <style>
+              #custCardsWrapper { display:flex; gap:14px; flex-wrap:wrap; }
+              @media(max-width:700px){ #custCardsWrapper { flex-direction:column; } #custCardsWrapper > div { max-width:100% !important; min-width:unset !important; } }
+            </style>
 
               <!-- Stats -->
               <section class="stats-section" style="margin-bottom:0;">
@@ -506,14 +511,16 @@
                 <div class="stat-card blue"><h4>Active Customers</h4><div class="amount" id="activeCustomers">0</div></div>
               </section>
 
-              <!-- Add New Customer Card -->
+              <!-- Add Customer Cards wrapper -->
+              <div id="custCardsWrapper">
+              <!-- Add New Customer Card (PAID) -->
               <div id="addCustomerCard" style="background:#f0fff4;border:2px solid #c3e6cb;border-radius:12px;padding:16px 18px;min-width:240px;max-width:300px;position:relative;">
                 <div id="addCustLock" style="display:none;position:absolute;inset:0;background:rgba(248,248,248,.95);border-radius:12px;flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:5;">
                   <span style="font-size:1.8em;">🔒</span>
                   <span style="font-weight:800;color:#343a40;font-size:.9em;">Deposits Locked</span>
                   <span style="font-size:.72em;color:#adb5bd;">Requires Deposit or Admin PIN</span>
                 </div>
-                <h3 style="color:#1a7a35;font-size:.95rem;margin-bottom:12px;display:flex;align-items:center;gap:6px;">➕ Add New Customer</h3>
+                <h3 style="color:#1a7a35;font-size:.95rem;margin-bottom:12px;display:flex;align-items:center;gap:6px;">➕ Add New Customer <span style="font-size:.7rem;background:#d4edda;color:#1a7a35;border-radius:20px;padding:2px 8px;font-weight:700;letter-spacing:.5px;">PAID</span></h3>
                 <div style="margin-bottom:10px;">
                   <label style="display:block;font-size:.78rem;font-weight:700;color:#495057;margin-bottom:4px;">Customer Name</label>
                   <input type="text" id="newCustName" placeholder="Enter name…"
@@ -528,10 +535,37 @@
                 </div>
                 <button onclick="addNewCustomer()"
                   style="width:100%;padding:9px;background:linear-gradient(135deg,#28a745,#1a7a35);color:white;border:none;border-radius:7px;font-size:.88rem;font-weight:700;cursor:pointer;letter-spacing:.4px;">
-                  💰 Add Customer
+                  💰 Add Paid Customer
                 </button>
               </div>
-            </div>
+
+              <!-- Add Unpaid Customer Card -->
+              <div id="addUnpaidCustCard" style="background:#fff5f5;border:2px solid #f5c6cb;border-radius:12px;padding:16px 18px;min-width:240px;max-width:300px;position:relative;">
+                <div id="addUnpaidCustLock" style="display:none;position:absolute;inset:0;background:rgba(248,248,248,.95);border-radius:12px;flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:5;">
+                  <span style="font-size:1.8em;">🔒</span>
+                  <span style="font-weight:800;color:#343a40;font-size:.9em;">Deposits Locked</span>
+                  <span style="font-size:.72em;color:#adb5bd;">Requires Deposit or Admin PIN</span>
+                </div>
+                <h3 style="color:#c0392b;font-size:.95rem;margin-bottom:12px;display:flex;align-items:center;gap:6px;">➕ Add New Customer <span style="font-size:.7rem;background:#fff0f0;color:#c0392b;border:1.5px solid #f5c6cb;border-radius:20px;padding:2px 8px;font-weight:700;letter-spacing:.5px;">UNPAID</span></h3>
+                <div style="margin-bottom:10px;">
+                  <label style="display:block;font-size:.78rem;font-weight:700;color:#495057;margin-bottom:4px;">Customer Name</label>
+                  <input type="text" id="newUnpaidCustName" placeholder="Enter name…"
+                    style="width:100%;padding:8px 10px;border:2px solid #f5c6cb;border-radius:7px;font-size:.88rem;outline:none;font-family:inherit;"
+                    onkeydown="if(event.key==='Enter')document.getElementById('newUnpaidCustAmount').focus()">
+                </div>
+                <div style="margin-bottom:12px;">
+                  <label style="display:block;font-size:.78rem;font-weight:700;color:#495057;margin-bottom:4px;">Amount Owed</label>
+                  <input type="number" id="newUnpaidCustAmount" placeholder="0.00" min="0.01" step="0.01"
+                    style="width:100%;padding:8px 10px;border:2px solid #f5c6cb;border-radius:7px;font-size:.88rem;outline:none;font-family:inherit;"
+                    onkeydown="if(event.key==='Enter')addNewUnpaidCustomer()">
+                </div>
+                <button onclick="addNewUnpaidCustomer()"
+                  style="width:100%;padding:9px;background:linear-gradient(135deg,#dc3545,#810f0f);color:white;border:none;border-radius:7px;font-size:.88rem;font-weight:700;cursor:pointer;letter-spacing:.4px;">
+                  🔴 Add Unpaid Customer
+                </button>
+              </div><!-- /unpaid card -->
+              </div><!-- /custCardsWrapper -->
+            </div><!-- /top grid -->
 
             <!-- DATE FILTER BAR -->
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:2px solid #dee2e6;border-radius:10px;padding:10px 16px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.05);">
@@ -811,6 +845,8 @@ function applyPermissions(role) {
     document.getElementById('bankLock').style.display       = role.canBank     ? 'none':'flex';
     const addLock = document.getElementById('addCustLock');
     if (addLock) addLock.style.display = role.canDeposit ? 'none' : 'flex';
+    const addUnpaidLock = document.getElementById('addUnpaidCustLock');
+    if (addUnpaidLock) addUnpaidLock.style.display = role.canDeposit ? 'none' : 'flex';
 }
 
 function addNewCustomer() {
@@ -825,21 +861,56 @@ function addNewCustomer() {
     if (!ledger.customers[name]) {
         ledger.customers[name] = {name, totalReceived:0, totalWithdrawn:0, balance:0, transactions:[]};
     }
+    const ts = new Date().toISOString();
+    // Record deposit
     ledger.customers[name].totalReceived += amount;
     ledger.customers[name].balance += amount;
-    const ts = new Date().toISOString();
-    const tx = {id:Date.now(), customer:name, type:'deposit', amount, timestamp:ts, balance:ledger.customers[name].balance, by:loggedInRole};
-    ledger.customers[name].transactions.push(tx);
-    ledger.transactions.unshift(tx);
+    const txDep = {id:Date.now(), customer:name, type:'deposit', amount, timestamp:ts, balance:ledger.customers[name].balance, by:loggedInRole};
+    ledger.customers[name].transactions.push(txDep);
+    ledger.transactions.unshift(txDep);
+    // Immediately record matching withdrawal so balance = 0 (PAID / Settled)
+    ledger.customers[name].totalWithdrawn += amount;
+    ledger.customers[name].balance -= amount;
+    const txWdr = {id:Date.now()+1, customer:name, type:'withdrawal', amount, timestamp:ts, balance:ledger.customers[name].balance, by:loggedInRole, autoPaid:true};
+    ledger.customers[name].transactions.push(txWdr);
+    ledger.transactions.unshift(txWdr);
     ledger.save();
-    // Clear fields FIRST before any re-render
     nameEl.value = '';
     amtEl.value = '';
     nameEl.style.borderColor='#28a745'; amtEl.style.borderColor='#28a745';
     setTimeout(()=>{ nameEl.style.borderColor='#c3e6cb'; amtEl.style.borderColor='#c3e6cb'; },600);
     nameEl.focus();
     ledger.updateDisplay();
-    ledger.toast(`✅ ${name} — ${fmt(amount)} deposited`);
+    ledger.toast(`✅ ${name} — ${fmt(amount)} registered as PAID`);
+}
+
+function addNewUnpaidCustomer() {
+    if (dayState && dayState.closed) { alert('⚠️ Day is closed. Please open a new day first.'); return; }
+    if (!loggedInRole || !ROLES[loggedInRole].canDeposit) { alert('🔒 Deposit permission required.'); return; }
+    const nameEl = document.getElementById('newUnpaidCustName');
+    const amtEl  = document.getElementById('newUnpaidCustAmount');
+    const name   = nameEl.value.trim();
+    const amount = parseFloat(amtEl.value);
+    if (!name)               { nameEl.focus(); nameEl.style.borderColor='#dc3545'; setTimeout(()=>nameEl.style.borderColor='#f5c6cb',1200); return; }
+    if (!amount || amount<=0){ amtEl.focus();  amtEl.style.borderColor='#dc3545';  setTimeout(()=>amtEl.style.borderColor='#f5c6cb',1200);  return; }
+    if (!ledger.customers[name]) {
+        ledger.customers[name] = {name, totalReceived:0, totalWithdrawn:0, balance:0, transactions:[]};
+    }
+    const ts = new Date().toISOString();
+    // Only record deposit — no withdrawal — so balance stays positive → status = Unpaid
+    ledger.customers[name].totalReceived += amount;
+    ledger.customers[name].balance += amount;
+    const tx = {id:Date.now(), customer:name, type:'deposit', amount, timestamp:ts, balance:ledger.customers[name].balance, by:loggedInRole, unpaid:true};
+    ledger.customers[name].transactions.push(tx);
+    ledger.transactions.unshift(tx);
+    ledger.save();
+    nameEl.value = '';
+    amtEl.value = '';
+    nameEl.style.borderColor='#dc3545'; amtEl.style.borderColor='#dc3545';
+    setTimeout(()=>{ nameEl.style.borderColor='#f5c6cb'; amtEl.style.borderColor='#f5c6cb'; },600);
+    nameEl.focus();
+    ledger.updateDisplay();
+    ledger.toast(`🔴 ${name} — ${fmt(amount)} registered as UNPAID`);
 }
 
 function logout() {
